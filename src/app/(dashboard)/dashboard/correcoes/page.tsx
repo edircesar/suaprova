@@ -1,16 +1,28 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { UploadCloud, Image as ImageIcon, X, CheckCircle, Loader2, FileText } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 export default function CorrecoesPage() {
   const [files, setFiles] = useState<File[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [gabaritos, setGabaritos] = useState<any[]>([])
+  const [selectedGabarito, setSelectedGabarito] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const supabase = createClient()
 
+  useEffect(() => {
+    async function fetchGabaritos() {
+      const { data } = await supabase.from('gabaritos').select('*').order('created_at', { ascending: false })
+      if (data) setGabaritos(data)
+    }
+    fetchGabaritos()
+  }, [])
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(true)
@@ -157,11 +169,17 @@ export default function CorrecoesPage() {
                 <label className="text-sm font-medium leading-none">
                   Gabarito Oficial
                 </label>
-                <select className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300">
+                <select 
+                  value={selectedGabarito}
+                  onChange={(e) => setSelectedGabarito(e.target.value)}
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300"
+                >
                   <option value="">Selecione um gabarito...</option>
-                  <option value="simulado-enem">Simulado ENEM 2026</option>
-                  <option value="prova-matematica">Prova 1º Bimestre - Matemática</option>
-                  <option value="concurso-prefeitura">Concurso Público - Auxiliar</option>
+                  {gabaritos.map(gabarito => (
+                    <option key={gabarito.id} value={gabarito.id}>
+                      {gabarito.nome} ({gabarito.questoes_qtd} questões)
+                    </option>
+                  ))}
                 </select>
                 <p className="text-[0.8rem] text-slate-500">
                   O gabarito que será usado como base para corrigir estas provas.
