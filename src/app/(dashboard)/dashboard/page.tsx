@@ -1,13 +1,33 @@
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileText, CheckCircle, Clock } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient()
+  
+  const { data: { session } } = await supabase.auth.getSession()
+  
+  if (!session) {
+    redirect('/login')
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .single()
+
+  // TODO: Buscar esses dados do banco quando as tabelas existirem
+  const provasCorrigidas = 0 
+  const gabaritosCadastrados = 0 
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Visão Geral</h1>
-        <p className="text-slate-500">Acompanhe as métricas de correção de provas e consumo de créditos.</p>
+        <p className="text-slate-500">Olá, {profile?.email}. Acompanhe suas métricas e consumo de créditos.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -17,8 +37,8 @@ export default function DashboardPage() {
             <CheckCircle className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
-            <p className="text-xs text-slate-500">+15% em relação ao mês passado</p>
+            <div className="text-2xl font-bold">{provasCorrigidas}</div>
+            <p className="text-xs text-slate-500">Total de correções realizadas</p>
           </CardContent>
         </Card>
         
@@ -28,8 +48,8 @@ export default function DashboardPage() {
             <FileText className="h-4 w-4 text-indigo-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">45</div>
-            <p className="text-xs text-slate-500">Ativos no sistema</p>
+            <div className="text-2xl font-bold">{gabaritosCadastrados}</div>
+            <p className="text-xs text-slate-500">Gabaritos ativos no sistema</p>
           </CardContent>
         </Card>
 
@@ -39,8 +59,8 @@ export default function DashboardPage() {
             <Clock className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">124</div>
-            <p className="text-xs text-slate-500">Expiram em 30 dias</p>
+            <div className="text-2xl font-bold">{profile?.credits || 0}</div>
+            <p className="text-xs text-slate-500">Saldo atual na conta</p>
           </CardContent>
         </Card>
       </div>
