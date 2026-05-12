@@ -17,7 +17,7 @@ export async function saveSystemSettings(formData: FormData) {
     .single()
 
   if (!profile || profile.role !== 'admin') {
-    return { error: 'Permissão negada.' }
+    throw new Error('Permissão negada.')
   }
 
   const geminiKey = formData.get('gemini_key') as string
@@ -37,9 +37,8 @@ export async function saveSystemSettings(formData: FormData) {
 
   if (error) {
     console.error('Erro ao salvar configurações:', error.message)
-    return { error: 'Falha ao salvar as configurações no banco de dados.' }
+    throw new Error('Falha ao salvar as configurações no banco de dados.')
   }
 
   revalidatePath('/admin/config')
-  return { success: true }
 }

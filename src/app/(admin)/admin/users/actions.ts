@@ -9,11 +9,11 @@ export async function updateCredits(formData: FormData) {
   const userId = formData.get('userId') as string
   const amount = parseInt(formData.get('amount') as string, 10)
 
-  if (!userId || isNaN(amount)) return { error: 'Valores inválidos.' }
+  if (!userId || isNaN(amount)) throw new Error('Valores inválidos.')
 
   // Verificar se o usuário atual é admin
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return { error: 'Não autorizado.' }
+  if (!session) throw new Error('Não autorizado.')
 
   const { data: currentUserProfile } = await supabase
     .from('profiles')
@@ -22,7 +22,7 @@ export async function updateCredits(formData: FormData) {
     .single()
 
   if (!currentUserProfile || currentUserProfile.role !== 'admin') {
-    return { error: 'Permissão negada.' }
+    throw new Error('Permissão negada.')
   }
 
   // Buscar os créditos atuais do usuário
@@ -33,7 +33,7 @@ export async function updateCredits(formData: FormData) {
     .single()
 
   if (fetchError || !targetProfile) {
-    return { error: 'Usuário não encontrado.' }
+    throw new Error('Usuário não encontrado.')
   }
 
   // Atualizar os créditos
@@ -45,9 +45,8 @@ export async function updateCredits(formData: FormData) {
     .eq('id', userId)
 
   if (updateError) {
-    return { error: 'Erro ao atualizar créditos.' }
+    throw new Error('Erro ao atualizar créditos.')
   }
 
   revalidatePath('/admin/users')
-  return { success: true }
 }
