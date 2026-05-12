@@ -27,7 +27,14 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="h-screen flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-auto flex flex-col">
+          {children}
+        </div>
+        <footer className="py-3 text-center text-xs font-medium text-slate-500 bg-white dark:bg-slate-950 border-t shrink-0 z-50">
+          by projeto7 - versão 1.0
+        </footer>
+      </body>
     </html>
   );
 }
