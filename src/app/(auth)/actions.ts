@@ -56,7 +56,7 @@ export async function login(formData: FormData) {
       status: error.status,
       code: error.code
     })
-    return { error: error.message }
+    throw new Error(error.message)
   }
 
   redirect('/dashboard')
@@ -78,7 +78,7 @@ export async function resetPassword(formData: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    throw new Error(error.message)
   }
 
   // Redireciona para uma tela de aviso "Verifique seu e-mail"
@@ -92,7 +92,7 @@ export async function updatePassword(formData: FormData) {
   const { error } = await supabase.auth.updateUser({ password })
 
   if (error) {
-    return { error: error.message }
+    throw new Error(error.message)
   }
 
   redirect('/dashboard')

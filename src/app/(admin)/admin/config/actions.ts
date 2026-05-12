@@ -8,7 +8,7 @@ export async function saveSystemSettings(formData: FormData) {
 
   // Verificação de segurança: apenas admin
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return { error: 'Não autorizado.' }
+  if (!session) throw new Error('Não autorizado.')
 
   const { data: profile } = await supabase
     .from('profiles')
