@@ -25,8 +25,7 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
           @page { size: A4; margin: 0; }
           body { 
             margin: 0 !important; 
-            padding: 0 !important; 
-            background: white !important;
+            @apply bg-background text-foreground;
             display: flex !important;
             justify-content: center !important;
             align-items: flex-start !important;
@@ -42,12 +41,14 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
         }
       `}} />
       {/* Menu Superior (Não imprime) */}
-      <div className="max-w-[210mm] mx-auto mb-6 flex items-center justify-between px-4 print:hidden">
-        <div>
+      <div className="w-full max-w-[210mm] mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 px-4 print:hidden">
+        <div className="text-center sm:text-left">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Gerador de Gabarito</h1>
           <p className="text-slate-500">Modelo Profissional SuaProva AI</p>
         </div>
-        <PrintSheetButton />
+        <div className="shrink-0">
+          <PrintSheetButton />
+        </div>
       </div>
 
       {/* Folha A4 Profissional */}
