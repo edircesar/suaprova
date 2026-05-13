@@ -83,40 +83,43 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
               <span className="text-[7px] font-bold block uppercase">Nome do Aluno</span>
               <div className="h-4"></div>
             </div>
-            <div className="border-2 border-black p-0.5 px-2">
-              <span className="text-[7px] font-bold block uppercase">Turma</span>
+              <span className="text-[8pt] font-bold block uppercase">Nome do Aluno</span>
               <div className="h-4"></div>
             </div>
             <div className="border-2 border-black p-0.5 px-2">
-              <span className="text-[7px] font-bold block uppercase">Prova</span>
-              <div className="h-4 text-[9px] font-bold flex items-center leading-none truncate">{gabarito.nome}</div>
+              <span className="text-[8pt] font-bold block uppercase">Turma</span>
+              <div className="h-4"></div>
+            </div>
+            <div className="border-2 border-black p-0.5 px-2">
+              <span className="text-[8pt] font-bold block uppercase">Prova</span>
+              <div className="h-4 text-[10pt] font-bold flex items-center leading-none truncate">{gabarito.nome}</div>
             </div>
           </div>
 
           {/* Bloco de Instruções Compacto */}
           <div className="grid grid-cols-2 gap-4 mb-3">
-            <div className="border-2 border-black p-1.5 px-3 text-[8.5px] leading-tight font-medium">
+            <div className="border-2 border-black p-1.5 px-3 text-[9.5pt] leading-tight font-medium">
               <div className="grid grid-cols-2 gap-x-2">
-                <ol className="list-decimal list-inside space-y-0 text-[7.5px]">
+                <ol className="list-decimal list-inside space-y-0 text-[8.5pt]">
                   <li>Uma única correta;</li>
                   <li>Caneta preta ou azul;</li>
                 </ol>
-                <ul className="list-disc list-inside space-y-0 text-[7.5px]">
+                <ul className="list-disc list-inside space-y-0 text-[8.5pt]">
                   <li>Não rasure ou dobre;</li>
                   <li>Preencha totalmente.</li>
                 </ul>
               </div>
             </div>
             <div className="border-2 border-black p-1 px-3 flex items-center justify-between">
-              <span className="text-[8px] font-bold uppercase">Exemplo:</span>
+              <span className="text-[9pt] font-bold uppercase">Exemplo:</span>
               <div className="flex gap-4">
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 rounded-full bg-black"></div>
-                  <span className="text-[7px] font-bold">CERTO</span>
+                  <span className="text-[8pt] font-bold">CERTO</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded-full border border-black flex items-center justify-center text-[7px] font-bold">✕</div>
-                  <span className="text-[7px] font-bold">ERRO</span>
+                  <div className="w-3 h-3 rounded-full border border-black flex items-center justify-center text-[8pt] font-bold">✕</div>
+                  <span className="text-[8pt] font-bold">ERRO</span>
                 </div>
               </div>
             </div>
@@ -144,7 +147,7 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
                     <div className="flex items-center h-[6.5mm] border-b-2 border-black mb-0.5">
                       <div className="w-3 h-1.5 bg-black mr-2"></div>
                       <div className="flex-1 flex justify-center gap-x-[1.5mm] pr-[1.5mm]">
-                        {['A', 'B', 'C', 'D', 'E'].map(a => <div key={a} className="w-[4.0mm] text-center text-[8.5px] font-black">{a}</div>)}
+                        {['A', 'B', 'C', 'D', 'E'].map(a => <div key={a} className="w-[4.0mm] text-center text-[9.5pt] font-black">{a}</div>)}
                       </div>
                     </div>
 
@@ -154,14 +157,14 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
 
                       return (
                         <div key={qNum} className="flex items-center h-[5.8mm] border-b border-slate-50">
-                          <div className="w-4 mr-1 text-[9px] font-black text-slate-800">
+                          <div className="w-4 mr-1 text-[10pt] font-black text-slate-800">
                             {qNum.toString().padStart(2, '0')}
                           </div>
                           <div className="flex-1 flex justify-center gap-x-[1.5mm] pr-[1.5mm]">
                             {['A', 'B', 'C', 'D', 'E'].map(alt => (
                               <div 
                                 key={alt} 
-                                className="w-[4.0mm] h-[4.0mm] rounded-full border-[1.2px] border-black flex items-center justify-center text-[6.5px] font-bold"
+                                className="w-[4.0mm] h-[4.0mm] rounded-full border-[1.2px] border-black flex items-center justify-center text-[7.5pt] font-bold"
                               >
                                 {alt}
                               </div>
@@ -183,7 +186,7 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
 
           {/* Rodapé Interno Alinhado */}
           <div className="mt-auto pt-4 pb-2 text-center opacity-20 border-t border-slate-100">
-            <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">
+            <p className="text-[9pt] font-bold text-slate-500 uppercase tracking-widest">
               SuaProva AI - Tecnologia em Avaliação
             </p>
           </div>
