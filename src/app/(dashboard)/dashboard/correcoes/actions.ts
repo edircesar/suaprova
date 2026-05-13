@@ -120,7 +120,18 @@ export async function processarProvaComIA(imageBase64: string, gabaritoId: strin
     throw new Error('Não autorizado')
   }
 
-  // 1. Buscar a chave da API do Gemini nas configurações do sistema
+  // 1. Verificar créditos do usuário
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('credits')
+    .eq('id', session.user.id)
+    .single()
+
+  if (!profile || (profile.credits || 0) < 1) {
+    throw new Error('Créditos insuficientes para correção Premium IA. Por favor, recarregue sua conta no menu Financeiro.')
+  }
+
+  // 2. Buscar a chave da API do Gemini nas configurações do sistema
   const { data: settings } = await supabase
     .from('system_settings')
     .select('gemini_api_key')
@@ -133,7 +144,7 @@ export async function processarProvaComIA(imageBase64: string, gabaritoId: strin
     throw new Error('Chave da API Gemini não configurada. Peça ao administrador para configurá-la em Admin > Configurações.')
   }
 
-  // 2. Buscar o gabarito
+  // 3. Buscar o gabarito
   const { data: gabarito } = await supabase
     .from('gabaritos')
     .select('*')
@@ -216,6 +227,12 @@ Analise a imagem agora:`
     // 5. Calcular nota
     const valorPorQuestao = (gabarito.valor_total || 10.0) / gabarito.questoes_qtd
     const nota = acertos * valorPorQuestao
+
+    // 6. Deduzir 1 crédito após sucesso
+    await supabase
+      .from('profiles')
+      .update({ credits: (profile?.credits || 1) - 1 })
+      .eq('id', session.user.id)
 
     return {
       success: true,

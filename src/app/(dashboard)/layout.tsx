@@ -12,6 +12,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const fullName = user?.user_metadata?.full_name || 'Usuário'
   const initials = fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2)
 
+  // Buscar créditos reais
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('credits')
+    .eq('id', user?.id)
+    .single()
+
   return (
     <div className="flex min-h-full flex-1 w-full bg-slate-50 dark:bg-slate-950">
       {/* ... sidebar content ... */}
@@ -19,9 +26,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {/* ... existing sidebar ... */}
         <div className="h-16 flex items-center px-6 border-b">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg mr-3">
-            C
+            S
           </div>
-          <span className="font-bold text-lg tracking-tight">CheckPro AI</span>
+          <span className="font-bold text-lg tracking-tight">SuaProva AI</span>
         </div>
         
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
@@ -51,10 +58,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </nav>
         
         <div className="p-4 border-t">
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 text-white shadow-lg shadow-indigo-500/20">
             <p className="text-sm font-medium mb-1">Créditos disponíveis</p>
-            <p className="text-2xl font-bold">124</p>
-            <Link href="/dashboard/financeiro" className="text-xs text-indigo-100 hover:text-white mt-2 inline-block">
+            <p className="text-2xl font-black">{profile?.credits || 0}</p>
+            <Link href="/dashboard/financeiro" className="text-xs text-white/80 hover:text-white mt-2 inline-block border-b border-white/20">
               Comprar mais →
             </Link>
           </div>
@@ -68,9 +75,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
           {/* ... existing mobile header ... */}
           <div className="md:hidden flex items-center">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg mr-3">
-              C
+            S
             </div>
-            <span className="font-bold text-lg tracking-tight">CheckPro AI</span>
+            <span className="font-bold text-lg tracking-tight">SuaProva AI</span>
           </div>
 
           <div className="flex items-center gap-4 ml-auto">
