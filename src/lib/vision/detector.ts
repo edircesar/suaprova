@@ -103,10 +103,12 @@ export class ExamDetector {
   }
 
   private sortCorners(points: any[]) {
-    // Lógica para identificar qual ponto é qual canto
+    // Ordenar por Y para separar topo de fundo
     points.sort((a, b) => a.y - b.y);
+    
+    // Pegar os 2 mais ao topo e os 2 mais ao fundo, ignorando marcadores intermediários se existirem
     let top = points.slice(0, 2).sort((a, b) => a.x - b.x);
-    let bottom = points.slice(2, 4).sort((a, b) => a.x - b.x);
+    let bottom = points.slice(points.length - 2).sort((a, b) => a.x - b.x);
     
     return {
       tl: top[0],

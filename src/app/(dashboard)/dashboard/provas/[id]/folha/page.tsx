@@ -53,7 +53,7 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
       </div>
 
       {/* Folha A4 Profissional */}
-      <div className="w-[210mm] h-[297mm] bg-white shadow-2xl print:shadow-none relative box-border overflow-hidden p-[10mm] font-sans text-black border print:border-0 print-container">
+      <div className="w-[210mm] h-[297mm] bg-white shadow-2xl print:shadow-none relative box-border overflow-hidden font-sans text-black border print:border-0 print-container">
         
         {/* MARCADORES DE CANTO - Posicionamento fixo de 8mm */}
         <div className="absolute top-[8mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-tl"></div>
@@ -61,11 +61,9 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
         <div className="absolute bottom-[15mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-bl"></div>
         <div className="absolute bottom-[15mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-br"></div>
 
-        {/* MARCADOR LATERAL MÉDIO - Posicionamento em 135mm (fora da zona de questões) */}
-        <div className="absolute top-[135mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-ml"></div>
-        <div className="absolute top-[135mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-mr"></div>
+        {/* MARCADOR LATERAL MÉDIO - REMOVIDO para evitar sobreposição */}
 
-        <div className="relative z-10 flex flex-col h-full">
+        <div className="relative z-10 flex flex-col h-full p-[10mm]">
           {/* Espaço para margem física superior */}
           <div className="h-[12mm]"></div>
 
