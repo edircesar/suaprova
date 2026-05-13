@@ -16,18 +16,18 @@ export const ALTERNATIVAS = ['A', 'B', 'C', 'D', 'E']
 // Marcadores de canto (posição relativa na página A4 em mm)
 export const MARKER_SIZE_MM = 7 // 7mm quadrados
 export const MARKER_POSITIONS = {
-  topLeft: { x: 10, y: 10 },
-  topRight: { x: 200, y: 10 },
-  bottomLeft: { x: 10, y: 282 },
-  bottomRight: { x: 200, y: 282 },
+  topLeft: { x: 8, y: 8 },
+  topRight: { x: 202, y: 8 },
+  bottomLeft: { x: 8, y: 289 },
+  bottomRight: { x: 202, y: 289 },
 }
 
 // Área útil da grade (entre os marcadores, em %)
 export const GRID_AREA = {
   startX: 8,   // % da largura entre marcadores
-  startY: 18,  // % da altura entre marcadores (subimos para aproveitar o topo)
+  startY: 22,  // % da altura entre marcadores (ajustado para novo cabeçalho)
   endX: 92,
-  endY: 90,
+  endY: 92,
 }
 
 // Tamanho relativo das bolinhas
