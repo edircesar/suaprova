@@ -80,7 +80,8 @@ export default async function ProvasPage() {
                 <thead className="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-900 dark:text-slate-400">
                   <tr>
                     <th scope="col" className="px-6 py-3 rounded-tl-lg">Nome da Prova</th>
-                    <th scope="col" className="px-6 py-3">Questões</th>
+                    <th scope="col" className="px-6 py-3 text-center">Questões</th>
+                    <th scope="col" className="px-6 py-3 text-center">Valor Total</th>
                     <th scope="col" className="px-6 py-3">Data de Criação</th>
                     <th scope="col" className="px-6 py-3 rounded-tr-lg">Ações</th>
                   </tr>
@@ -96,18 +97,29 @@ export default async function ProvasPage() {
                           {gabarito.nome}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">
-                          {gabarito.questoes_qtd} questões
+                          {gabarito.questoes_qtd}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 text-center font-bold text-indigo-600">
+                        {gabarito.valor_total ? gabarito.valor_total.toFixed(1) : '10.0'}
                       </td>
                       <td className="px-6 py-4 text-slate-500">
                         {new Date(gabarito.created_at).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="px-6 py-4">
-                        <button className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm font-medium">
-                          Editar
-                        </button>
+                        <div className="flex items-center gap-4">
+                          <Link 
+                            href={`/dashboard/provas/${gabarito.id}/relatorio`}
+                            className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm font-bold"
+                          >
+                            Relatório
+                          </Link>
+                          <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-medium">
+                            Editar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

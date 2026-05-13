@@ -15,6 +15,7 @@ export async function createGabarito(formData: FormData) {
 
   const nome = formData.get('nome') as string
   const questoesQtd = parseInt(formData.get('questoes_qtd') as string, 10)
+  const valorTotal = parseFloat(formData.get('valor_total') as string) || 10.0
   
   // Extrair as respostas (esperado vir no formato answer_1, answer_2, etc)
   const respostas: Record<string, string> = {}
@@ -31,6 +32,7 @@ export async function createGabarito(formData: FormData) {
       user_id: session.user.id,
       nome,
       questoes_qtd: questoesQtd,
+      valor_total: valorTotal,
       respostas
     })
 

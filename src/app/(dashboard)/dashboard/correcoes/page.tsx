@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { UploadCloud, Image as ImageIcon, X, CheckCircle, Loader2, FileText, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { ExamDetector, BubbleResult } from '@/lib/vision/detector'
+import { saveCorrecao } from './actions'
 
 export default function CorrecoesPage() {
   const [files, setFiles] = useState<File[]>([])
@@ -100,20 +101,39 @@ export default function CorrecoesPage() {
         
         // Comparar com Gabarito
         let acertos = 0
+        const respostasFormatadas: Record<string, string> = {}
+        
         const questoesDetalhadas = detection.map(d => {
           const correta = gabarito.respostas[d.question.toString()]
           const isCorrect = d.answer === correta
           if (isCorrect) acertos++
+          respostasFormatadas[d.question.toString()] = d.answer || ''
           return { ...d, correta, isCorrect }
         })
 
-        const nota = (acertos / gabarito.questoes_qtd) * 10
+        // Cálculo da nota baseado no Valor Total do Gabarito
+        const valorPorQuestao = (gabarito.valor_total || 10.0) / gabarito.questoes_qtd
+        const notaFinal = acertos * valorPorQuestao
         
+        // Tentar extrair nome do arquivo (ex: "Joao Silva.jpg")
+        const alunoNome = file.name.split('.')[0].replace(/[-_]/g, ' ')
+
+        // SALVAR NO BANCO
+        await saveCorrecao({
+          gabarito_id: selectedGabaritoId,
+          aluno_nome: alunoNome,
+          acertos,
+          total_questoes: gabarito.questoes_qtd,
+          nota: notaFinal,
+          respostas_aluno: respostasFormatadas
+        })
+
         processingResults.push({
           fileName: file.name,
+          alunoNome,
           acertos,
           total: gabarito.questoes_qtd,
-          nota: nota.toFixed(1),
+          nota: notaFinal.toFixed(1),
           detalhes: questoesDetalhadas
         })
       }
@@ -251,7 +271,7 @@ export default function CorrecoesPage() {
                         </div>
                         <div>
                           <p className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[200px]">
-                            {res.fileName}
+                            {res.alunoNome || res.fileName}
                           </p>
                           <p className="text-xs text-slate-500">
                             {res.acertos} acertos de {res.total}
@@ -286,7 +306,7 @@ export default function CorrecoesPage() {
                 <select 
                   value={selectedGabaritoId}
                   onChange={(e) => setSelectedGabaritoId(e.target.value)}
-                  className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300"
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950"
                 >
                   <option value="">Selecione um gabarito...</option>
                   {gabaritos.map(gabarito => (

@@ -191,6 +191,21 @@ export default function NovoGabaritoPage() {
                   <option value={90}>90 Questões</option>
                 </select>
               </div>
+
+              <div className="space-y-2">
+                <label htmlFor="valor_total" className="text-sm font-medium leading-none">
+                  Valor Total da Prova (Pontuação Máxima)
+                </label>
+                <input
+                  id="valor_total"
+                  name="valor_total"
+                  type="number"
+                  step="0.1"
+                  defaultValue={10.0}
+                  required
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-800 dark:placeholder:text-slate-400"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
