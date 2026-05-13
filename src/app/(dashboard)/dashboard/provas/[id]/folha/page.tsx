@@ -32,91 +32,82 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
       {/* Folha A4 Profissional */}
       <div className="w-[210mm] h-[297mm] mx-auto bg-white shadow-2xl print:shadow-none relative box-border overflow-hidden p-[10mm] font-sans text-black border print:border-0">
         
-        {/* MARCADORES DE CANTO (Usando borda para garantir impressão) */}
+        {/* MARCADORES DE CANTO - Limite de segurança ajustado */}
         <div className="absolute top-[8mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-tl"></div>
         <div className="absolute top-[8mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-tr"></div>
-        <div className="absolute bottom-[8mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-bl"></div>
-        <div className="absolute bottom-[8mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-br"></div>
+        <div className="absolute bottom-[12mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-bl"></div>
+        <div className="absolute bottom-[12mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-br"></div>
 
-        {/* MARCADORES LATERAIS (Estilo CEBAMA) */}
-        <div className="absolute top-[50%] left-[8mm] translate-y-[-50%] w-[7mm] h-[5mm] bg-black"></div>
-        <div className="absolute top-[50%] right-[8mm] translate-y-[-50%] w-[7mm] h-[5mm] bg-black"></div>
-
-        {/* Cabeçalho Superior */}
-        <div className="px-8 mt-6">
-          <div className="flex justify-between items-start mb-4">
-            <div className="text-2xl font-black uppercase tracking-tighter italic text-slate-400">SuaProva AI</div>
+        {/* Cabeçalho Superior Compacto */}
+        <div className="px-8 mt-4">
+          <div className="flex justify-between items-end mb-2">
+            <div className="text-xl font-black uppercase tracking-tighter italic text-slate-400">SuaProva AI</div>
             <div className="text-right">
-              <span className="text-[9px] font-bold block">ID DO GABARITO</span>
-              <span className="text-xs font-mono">{gabarito.id.slice(0,18).toUpperCase()}</span>
+              <span className="text-[8px] font-bold block">ID: {gabarito.id.slice(0,18).toUpperCase()}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 mb-4">
-            <div className="col-span-2 border-2 border-black p-1 px-2">
-              <span className="text-[8px] font-bold block uppercase">Nome do Aluno</span>
-              <div className="h-6"></div>
+          <div className="grid grid-cols-4 gap-2 mb-2">
+            <div className="col-span-2 border-2 border-black p-0.5 px-2">
+              <span className="text-[7px] font-bold block uppercase">Nome do Aluno</span>
+              <div className="h-4"></div>
             </div>
-            <div className="border-2 border-black p-1 px-2">
-              <span className="text-[8px] font-bold block uppercase">Turma</span>
-              <div className="h-6"></div>
+            <div className="border-2 border-black p-0.5 px-2">
+              <span className="text-[7px] font-bold block uppercase">Turma</span>
+              <div className="h-4"></div>
             </div>
-            <div className="border-2 border-black p-1 px-2">
-              <span className="text-[8px] font-bold block uppercase">Prova</span>
-              <div className="h-6 text-[10px] font-bold flex items-center">{gabarito.nome.substring(0, 20)}</div>
+            <div className="border-2 border-black p-0.5 px-2">
+              <span className="text-[7px] font-bold block uppercase">Prova</span>
+              <div className="h-4 text-[9px] font-bold flex items-center leading-none">{gabarito.nome.substring(0, 20)}</div>
             </div>
           </div>
         </div>
 
-        {/* Bloco de Instruções e Exemplo (Lado a Lado) */}
-        <div className="px-8 grid grid-cols-2 gap-4 mb-4">
-          <div className="border-2 border-black p-3 text-[9px] leading-tight font-medium">
-            <ol className="list-decimal list-inside space-y-1">
-              <li>Cada questão tem uma única alternativa correta;</li>
-              <li>Utilize caneta de tinta <strong>preta</strong> ou <strong>azul escura</strong>;</li>
-              <li>Preencha a bolinha completamente como no exemplo;</li>
-              <li>Não rasure, não amasse e não dobre esta folha;</li>
-              <li>A folha de respostas não poderá ser substituída.</li>
-            </ol>
+        {/* Bloco de Instruções Compacto */}
+        <div className="px-8 grid grid-cols-2 gap-4 mb-2">
+          <div className="border-2 border-black p-1.5 px-3 text-[8.5px] leading-tight font-medium">
+            <div className="grid grid-cols-2 gap-x-2">
+              <ol className="list-decimal list-inside space-y-0">
+                <li>Uma única correta;</li>
+                <li>Caneta preta ou azul;</li>
+              </ol>
+              <ul className="list-disc list-inside space-y-0">
+                <li>Não rasure ou dobre;</li>
+                <li>Preencha totalmente.</li>
+              </ul>
+            </div>
           </div>
-          <div className="border-2 border-black p-3 flex flex-col items-center justify-center">
-            <span className="text-[9px] font-bold uppercase mb-2">Exemplo de preenchimento</span>
+          <div className="border-2 border-black p-1 px-3 flex items-center justify-between">
+            <span className="text-[8px] font-bold uppercase">Exemplo:</span>
             <div className="flex gap-4">
-              <div className="flex flex-col items-center">
-                <div className="w-4 h-4 rounded-full bg-black mb-1"></div>
-                <span className="text-[8px] font-bold">CERTO</span>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-black"></div>
+                <span className="text-[7px] font-bold">CERTO</span>
               </div>
-              <div className="flex flex-col items-center">
-                <div className="w-4 h-4 rounded-full border-2 border-black flex items-center justify-center text-[8px] font-bold mb-1">✕</div>
-                <span className="text-[8px] font-bold">ERRADO</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-4 h-4 rounded-full border-2 border-black flex items-center justify-center text-[10px] font-bold mb-1">·</div>
-                <span className="text-[8px] font-bold">ERRADO</span>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full border border-black flex items-center justify-center text-[7px] font-bold">✕</div>
+                <span className="text-[7px] font-bold">ERRO</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Barra de Alinhamento Lateral (Ladder) e Grade de Respostas */}
+        {/* Grade de Respostas Compacta */}
         <div className="px-8 flex gap-4">
-          {/* Escadinha lateral de alinhamento */}
-          <div className="flex flex-col gap-[2.2mm] pt-8">
+          {/* Escadinha lateral */}
+          <div className="flex flex-col gap-[1.8mm] pt-6">
             {Array.from({ length: 30 }).map((_, i) => (
-              <div key={i} className={`w-4 h-2 bg-black ${i % 2 === 0 ? 'opacity-100' : 'opacity-20'}`}></div>
+              <div key={i} className={`w-3 h-1.5 bg-black ${i % 2 === 0 ? 'opacity-100' : 'opacity-20'}`}></div>
             ))}
           </div>
 
-          {/* Grade de Questões (3 Colunas) */}
           <div className="flex-1 grid grid-cols-3 gap-x-6">
             {Array.from({ length: 3 }).map((_, colIdx) => (
               <div key={colIdx} className="space-y-0">
-                {/* Header de Coluna */}
-                <div className="flex items-center h-[8mm] border-b-2 border-black mb-1">
-                   {/* Marcador de Topo de Coluna */}
-                  <div className="w-4 h-2 bg-black mr-2"></div>
-                  <div className="flex-1 flex justify-around text-[10px] font-black">
-                    {['A', 'B', 'C', 'D', 'E'].map(a => <div key={a} className="w-5 text-center">{a}</div>)}
+                <div className="flex items-center h-[7mm] border-b-2 border-black mb-0.5">
+                  <div className="w-3 h-1.5 bg-black mr-2"></div>
+                  <div className="flex-1 flex justify-around text-[9px] font-black">
+                    {['A', 'B', 'C', 'D', 'E'].map(a => <div key={a} className="w-4 text-center">{a}</div>)}
                   </div>
                 </div>
 
@@ -125,15 +116,15 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
                   if (qNum > gabarito.questoes_qtd) return null
 
                   return (
-                    <div key={qNum} className="flex items-center h-[6.8mm] border-b border-slate-100">
-                      <div className="w-6 mr-1 text-[11px] font-black text-slate-800">
+                    <div key={qNum} className="flex items-center h-[6.3mm] border-b border-slate-100">
+                      <div className="w-5 mr-1 text-[10px] font-black text-slate-800">
                         {qNum.toString().padStart(2, '0')}
                       </div>
                       <div className="flex-1 flex justify-around">
                         {['A', 'B', 'C', 'D', 'E'].map(alt => (
                           <div 
                             key={alt} 
-                            className="w-[4.8mm] h-[4.8mm] rounded-full border-[1.5px] border-black flex items-center justify-center text-[8px] font-bold"
+                            className="w-[4.4mm] h-[4.4mm] rounded-full border-[1.2px] border-black flex items-center justify-center text-[7px] font-bold"
                           >
                             {alt}
                           </div>
@@ -142,20 +133,15 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
                     </div>
                   )
                 })}
-                
-                {/* Rodapé de Coluna (Marcador) */}
-                <div className="flex justify-center mt-1">
-                  <div className="w-6 h-2 bg-black"></div>
-                </div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Rodapé da Folha */}
-        <div className="absolute bottom-16 left-0 right-0 text-center border-t border-slate-100 pt-4">
-          <p className="text-[10px] font-bold text-slate-400">
-            PLATAFORMA SUAPROVA AI - TECNOLOGIA EM AVALIAÇÃO ESCOLAR
+        <div className="absolute bottom-10 left-0 right-0 text-center opacity-20">
+          <p className="text-[8px] font-bold text-slate-500">
+            SUAPROVA AI - GABARITO OFICIAL
           </p>
         </div>
 
