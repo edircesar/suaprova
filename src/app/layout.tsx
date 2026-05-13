@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,13 +28,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        {/* Carregar OpenCV de forma otimizada */}
-        <Script 
+        {/* OpenCV carregado via script tag simples para compatibilidade com Server Component */}
+        <script 
           src="https://cdn.jsdelivr.net/npm/@techstardigital/opencv-js@4.5.4-release.3/opencv.js" 
-          strategy="afterInteractive"
-          onLoad={() => {
-            console.log('OpenCV.js carregado com sucesso via CDN')
-          }}
+          async
+          defer
         />
       </head>
       <body className="h-screen flex flex-col overflow-hidden">

@@ -1,12 +1,13 @@
 import React from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Printer, ArrowLeft, Download, FileText, Users, CheckCircle, TrendingUp } from 'lucide-react'
+import { ArrowLeft, FileText, Users, CheckCircle, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
+import PrintButton from './PrintButton'
 
-export default async function RelatorioProvaPage({ params }: { params: { id: string } }) {
+export default async function RelatorioProvaPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
-  const { id } = params
+  const { id } = await params
 
   // 1. Buscar dados do gabarito
   const { data: gabarito } = await supabase
@@ -52,13 +53,7 @@ export default async function RelatorioProvaPage({ params }: { params: { id: str
           </div>
         </div>
         <div className="flex gap-2">
-          <button 
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium"
-          >
-            <Printer size={18} />
-            Imprimir Relatório
-          </button>
+          <PrintButton />
         </div>
       </div>
 
