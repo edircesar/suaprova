@@ -1,6 +1,6 @@
 import React from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { getTemplateConfig, getBubblePositions, MARKER_SIZE_MM } from '@/lib/omr/template-config'
+import { getTemplateConfig, getBubblePositions } from '@/lib/omr/template-config'
 import PrintSheetButton from './PrintSheetButton'
 import { notFound } from 'next/navigation'
 
@@ -17,100 +17,123 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
   if (!gabarito) notFound()
 
   const config = getTemplateConfig(gabarito.questoes_qtd)
-  const positions = getBubblePositions(config)
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8 print:p-0 print:bg-white">
-      {/* Header fixo para instrução (não sai na impressão se quisermos, mas aqui ajuda o usuário) */}
+      {/* Menu Superior (Não imprime) */}
       <div className="max-w-[210mm] mx-auto mb-6 flex items-center justify-between px-4 print:hidden">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Folha de Respostas</h1>
-          <p className="text-slate-500">Imprima esta folha em papel A4 para os alunos.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Gerador de Gabarito</h1>
+          <p className="text-slate-500">Modelo Profissional SuaProva AI</p>
         </div>
         <PrintSheetButton />
       </div>
 
-      {/* Folha A4 */}
-      <div className="w-[210mm] h-[297mm] mx-auto bg-white shadow-2xl print:shadow-none relative box-border overflow-hidden p-[15mm]">
+      {/* Folha A4 Profissional */}
+      <div className="w-[210mm] h-[297mm] mx-auto bg-white shadow-2xl print:shadow-none relative box-border overflow-hidden p-[10mm] font-sans text-black border print:border-0">
         
-        {/* Marcadores de Canto - Limite máximo de segurança */}
-        <div className="absolute top-[8mm] left-[8mm] w-[7mm] h-[7mm] bg-black" id="marker-tl"></div>
-        <div className="absolute top-[8mm] right-[8mm] w-[7mm] h-[7mm] bg-black" id="marker-tr"></div>
-        <div className="absolute bottom-[8mm] left-[8mm] w-[7mm] h-[7mm] bg-black" id="marker-bl"></div>
-        <div className="absolute bottom-[8mm] right-[8mm] w-[7mm] h-[7mm] bg-black" id="marker-br"></div>
+        {/* MARCADORES DE CANTO (Usando borda para garantir impressão) */}
+        <div className="absolute top-[8mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-tl"></div>
+        <div className="absolute top-[8mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-tr"></div>
+        <div className="absolute bottom-[8mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-bl"></div>
+        <div className="absolute bottom-[8mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-br"></div>
 
-        {/* Cabeçalho da Prova */}
-        <div className="mt-2 mb-4 border-b-2 border-black pb-2 px-4">
-          <h2 className="text-xl font-black text-center mb-4 uppercase tracking-tight">{gabarito.nome}</h2>
-          
-          <div className="space-y-3">
-            <div className="flex gap-4">
-              <div className="flex-1 border-b border-black pb-1">
-                <span className="text-[9px] font-bold uppercase block mb-0.5">Nome do Aluno</span>
-                <div className="h-5"></div>
-              </div>
+        {/* MARCADORES LATERAIS (Estilo CEBAMA) */}
+        <div className="absolute top-[50%] left-[8mm] translate-y-[-50%] w-[7mm] h-[5mm] bg-black"></div>
+        <div className="absolute top-[50%] right-[8mm] translate-y-[-50%] w-[7mm] h-[5mm] bg-black"></div>
+
+        {/* Cabeçalho Superior */}
+        <div className="px-8 mt-6">
+          <div className="flex justify-between items-start mb-4">
+            <div className="text-2xl font-black uppercase tracking-tighter italic text-slate-400">SuaProva AI</div>
+            <div className="text-right">
+              <span className="text-[9px] font-bold block">ID DO GABARITO</span>
+              <span className="text-xs font-mono">{gabarito.id.slice(0,18).toUpperCase()}</span>
             </div>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            <div className="col-span-2 border-2 border-black p-1 px-2">
+              <span className="text-[8px] font-bold block uppercase">Nome do Aluno</span>
+              <div className="h-6"></div>
+            </div>
+            <div className="border-2 border-black p-1 px-2">
+              <span className="text-[8px] font-bold block uppercase">Turma</span>
+              <div className="h-6"></div>
+            </div>
+            <div className="border-2 border-black p-1 px-2">
+              <span className="text-[8px] font-bold block uppercase">Prova</span>
+              <div className="h-6 text-[10px] font-bold flex items-center">{gabarito.nome.substring(0, 20)}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bloco de Instruções e Exemplo (Lado a Lado) */}
+        <div className="px-8 grid grid-cols-2 gap-4 mb-4">
+          <div className="border-2 border-black p-3 text-[9px] leading-tight font-medium">
+            <ol className="list-decimal list-inside space-y-1">
+              <li>Cada questão tem uma única alternativa correta;</li>
+              <li>Utilize caneta de tinta <strong>preta</strong> ou <strong>azul escura</strong>;</li>
+              <li>Preencha a bolinha completamente como no exemplo;</li>
+              <li>Não rasure, não amasse e não dobre esta folha;</li>
+              <li>A folha de respostas não poderá ser substituída.</li>
+            </ol>
+          </div>
+          <div className="border-2 border-black p-3 flex flex-col items-center justify-center">
+            <span className="text-[9px] font-bold uppercase mb-2">Exemplo de preenchimento</span>
             <div className="flex gap-4">
-              <div className="w-48 border-b border-black pb-1">
-                <span className="text-[9px] font-bold uppercase block mb-0.5">Turma / Período</span>
-                <div className="h-5"></div>
+              <div className="flex flex-col items-center">
+                <div className="w-4 h-4 rounded-full bg-black mb-1"></div>
+                <span className="text-[8px] font-bold">CERTO</span>
               </div>
-              <div className="w-40 border-b border-black pb-1">
-                <span className="text-[9px] font-bold uppercase block mb-0.5">Data</span>
-                <div className="h-5"></div>
+              <div className="flex flex-col items-center">
+                <div className="w-4 h-4 rounded-full border-2 border-black flex items-center justify-center text-[8px] font-bold mb-1">✕</div>
+                <span className="text-[8px] font-bold">ERRADO</span>
               </div>
-              <div className="flex-1 border-b border-black pb-1 text-right">
-                <span className="text-[9px] font-bold uppercase block mb-0.5">Total de Questões</span>
-                <div className="h-5 font-bold text-base">{gabarito.questoes_qtd}</div>
+              <div className="flex flex-col items-center">
+                <div className="w-4 h-4 rounded-full border-2 border-black flex items-center justify-center text-[10px] font-bold mb-1">·</div>
+                <span className="text-[8px] font-bold">ERRADO</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Instruções de preenchimento - Movido para cima da grade */}
-        <div className="px-4 mb-4 flex justify-between items-center text-[9px] font-bold uppercase border border-slate-200 p-2 rounded">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <span>Correto:</span>
-              <div className="w-3 h-3 rounded-full bg-black"></div>
-            </div>
-            <div className="flex items-center gap-1">
-              <span>Incorreto:</span>
-              <div className="w-3 h-3 rounded-full border border-black flex items-center justify-center text-[7px]">✕</div>
-              <div className="w-3 h-3 rounded-full border border-black flex items-center justify-center text-[7px]">✓</div>
-            </div>
+        {/* Barra de Alinhamento Lateral (Ladder) e Grade de Respostas */}
+        <div className="px-8 flex gap-4">
+          {/* Escadinha lateral de alinhamento */}
+          <div className="flex flex-col gap-[2.2mm] pt-8">
+            {Array.from({ length: 30 }).map((_, i) => (
+              <div key={i} className={`w-4 h-2 bg-black ${i % 2 === 0 ? 'opacity-100' : 'opacity-20'}`}></div>
+            ))}
           </div>
-          <div className="text-[8px] text-slate-500 normal-case">
-            Use caneta preta ou azul escura. Preencha a bolinha completamente.
-          </div>
-        </div>
 
-        {/* Grade de Respostas - Otimizada para caber tudo */}
-        <div className="relative px-2">
-          <div className="grid grid-cols-3 gap-x-6">
-            {Array.from({ length: config.colunas }).map((_, colIdx) => (
-              <div key={colIdx} className="border border-slate-100 rounded p-1">
-                <div className="flex items-center text-[8px] font-bold text-slate-400 mb-1 px-1">
-                  <div className="w-5 mr-2">Nº</div>
-                  <div className="flex-1 flex justify-around">
-                    {config.alternativas.map(a => <div key={a} className="w-4 text-center">{a}</div>)}
+          {/* Grade de Questões (3 Colunas) */}
+          <div className="flex-1 grid grid-cols-3 gap-x-6">
+            {Array.from({ length: 3 }).map((_, colIdx) => (
+              <div key={colIdx} className="space-y-0">
+                {/* Header de Coluna */}
+                <div className="flex items-center h-[8mm] border-b-2 border-black mb-1">
+                   {/* Marcador de Topo de Coluna */}
+                  <div className="w-4 h-2 bg-black mr-2"></div>
+                  <div className="flex-1 flex justify-around text-[10px] font-black">
+                    {['A', 'B', 'C', 'D', 'E'].map(a => <div key={a} className="w-5 text-center">{a}</div>)}
                   </div>
                 </div>
-                
-                {Array.from({ length: config.questoes_por_coluna }).map((_, rowIdx) => {
-                  const qNum = colIdx * config.questoes_por_coluna + rowIdx + 1
+
+                {Array.from({ length: 30 }).map((_, rowIdx) => {
+                  const qNum = colIdx * 30 + rowIdx + 1
                   if (qNum > gabarito.questoes_qtd) return null
 
                   return (
-                    <div key={qNum} className="flex items-center h-[6.2mm] border-b border-slate-50 last:border-0">
-                      <div className="w-5 mr-2 text-[10px] font-bold text-slate-700">
+                    <div key={qNum} className="flex items-center h-[6.8mm] border-b border-slate-100">
+                      <div className="w-6 mr-1 text-[11px] font-black text-slate-800">
                         {qNum.toString().padStart(2, '0')}
                       </div>
                       <div className="flex-1 flex justify-around">
-                        {config.alternativas.map(alt => (
+                        {['A', 'B', 'C', 'D', 'E'].map(alt => (
                           <div 
                             key={alt} 
-                            className="w-[4.2mm] h-[4.2mm] rounded-full border border-black flex items-center justify-center text-[7px] font-bold"
+                            className="w-[4.8mm] h-[4.8mm] rounded-full border-[1.5px] border-black flex items-center justify-center text-[8px] font-bold"
                           >
                             {alt}
                           </div>
@@ -119,15 +142,20 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
                     </div>
                   )
                 })}
+                
+                {/* Rodapé de Coluna (Marcador) */}
+                <div className="flex justify-center mt-1">
+                  <div className="w-6 h-2 bg-black"></div>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Rodapé da folha - Movido para área segura */}
-        <div className="absolute bottom-[20mm] left-0 right-0 text-center opacity-30">
-          <p className="text-[7px] font-bold uppercase tracking-widest">
-            Folha de Respostas Oficial - Gerada por SuaProva AI
+        {/* Rodapé da Folha */}
+        <div className="absolute bottom-16 left-0 right-0 text-center border-t border-slate-100 pt-4">
+          <p className="text-[10px] font-bold text-slate-400">
+            PLATAFORMA SUAPROVA AI - TECNOLOGIA EM AVALIAÇÃO ESCOLAR
           </p>
         </div>
 
@@ -135,8 +163,9 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
 
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          body { margin: 0; padding: 0; background: white; }
+          body { margin: 0; padding: 0; background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .print\\:hidden { display: none !important; }
+          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           @page { size: A4; margin: 0; }
         }
       `}} />

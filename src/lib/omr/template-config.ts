@@ -24,10 +24,10 @@ export const MARKER_POSITIONS = {
 
 // Área útil da grade (entre os marcadores, em %)
 export const GRID_AREA = {
-  startX: 8,   // % da largura entre marcadores
-  startY: 22,  // % da altura entre marcadores (ajustado para novo cabeçalho)
-  endX: 92,
-  endY: 92,
+  startX: 14,  // % da largura entre marcadores (deixar espaço para a "escadinha")
+  startY: 32,  // % da altura entre marcadores (muito mais baixo devido ao cabeçalho e instruções)
+  endX: 95,
+  endY: 96,
 }
 
 // Tamanho relativo das bolinhas
