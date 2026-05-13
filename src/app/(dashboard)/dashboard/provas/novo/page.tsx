@@ -19,6 +19,7 @@ export default function NovoGabaritoPage() {
   const [isDragging, setIsDragging] = useState(false)
   const [isExtracting, setIsExtracting] = useState(false)
   const [extractionDone, setExtractionDone] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -32,12 +33,23 @@ export default function NovoGabaritoPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError(null)
     
     try {
       const formData = new FormData(e.currentTarget)
-      await createGabarito(formData)
-    } catch (error) {
-      console.error(error)
+      const result = await createGabarito(formData)
+      
+      if (result && 'error' in result) {
+        setError(result.error as string)
+        setIsSubmitting(false)
+      }
+      // Se for sucesso, o redirect dentro da action cuidará do resto
+    } catch (err: any) {
+      // O redirect do Next.js joga uma exception, então ignoramos se for o caso
+      if (err.message === 'NEXT_REDIRECT') return
+      
+      console.error(err)
+      setError('Ocorreu um erro ao salvar o gabarito. Verifique sua conexão ou se a tabela no banco existe.')
       setIsSubmitting(false)
     }
   }
@@ -367,7 +379,13 @@ export default function NovoGabaritoPage() {
                 })}
               </div>
             </CardContent>
-            <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t flex justify-end py-4 mt-6">
+            <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t flex flex-col items-end gap-4 py-4 mt-6">
+              {error && (
+                <div className="w-full bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-1 dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-400">
+                  <X className="h-5 w-5 shrink-0" />
+                  <p className="text-sm font-medium">{error}</p>
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={isSubmitting || Object.keys(respostas).length < questoesQtd}
