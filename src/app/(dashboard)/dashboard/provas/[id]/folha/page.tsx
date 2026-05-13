@@ -123,52 +123,60 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
 
           {/* Grade de Respostas Compacta */}
           <div className="flex gap-4 flex-1">
-            {/* Escadinha lateral */}
+            {/* Escadinha lateral expandida para 45 linhas */}
             <div className="flex flex-col gap-[1.5mm] pt-6">
-              {Array.from({ length: 30 }).map((_, i) => (
+              {Array.from({ length: 45 }).map((_, i) => (
                 <div key={i} className={`w-3 h-1.5 bg-black ${i % 2 === 0 ? 'opacity-100' : 'opacity-20'}`}></div>
               ))}
             </div>
 
             <div className="flex-1 grid grid-cols-3 gap-x-6">
-              {Array.from({ length: 3 }).map((_, colIdx) => (
-                <div key={colIdx} className="space-y-0 flex flex-col">
-                  <div className="flex items-center h-[6.5mm] border-b-2 border-black mb-0.5">
-                    <div className="w-3 h-1.5 bg-black mr-2"></div>
-                    <div className="flex-1 flex justify-around text-[8.5px] font-black">
-                      {['A', 'B', 'C', 'D', 'E'].map(a => <div key={a} className="w-3.5 text-center">{a}</div>)}
+              {Array.from({ length: 3 }).map((_, colIdx) => {
+                const rowsPerCol = 45 // Aumentado para preencher o espaço vertical
+                const startNum = colIdx * rowsPerCol + 1
+                
+                // Se a coluna começar além do total de questões, não renderiza nada
+                if (startNum > gabarito.questoes_qtd) return <div key={colIdx}></div>
+
+                return (
+                  <div key={colIdx} className="space-y-0 flex flex-col">
+                    <div className="flex items-center h-[6.5mm] border-b-2 border-black mb-0.5">
+                      <div className="w-3 h-1.5 bg-black mr-2"></div>
+                      <div className="flex-1 flex justify-around text-[8.5px] font-black">
+                        {['A', 'B', 'C', 'D', 'E'].map(a => <div key={a} className="w-3.5 text-center">{a}</div>)}
+                      </div>
+                    </div>
+
+                    {Array.from({ length: rowsPerCol }).map((_, rowIdx) => {
+                      const qNum = startNum + rowIdx
+                      if (qNum > gabarito.questoes_qtd) return null
+
+                      return (
+                        <div key={qNum} className="flex items-center h-[5.8mm] border-b border-slate-50">
+                          <div className="w-4 mr-1 text-[9px] font-black text-slate-800">
+                            {qNum.toString().padStart(2, '0')}
+                          </div>
+                          <div className="flex-1 flex justify-around">
+                            {['A', 'B', 'C', 'D', 'E'].map(alt => (
+                              <div 
+                                key={alt} 
+                                className="w-[4.0mm] h-[4.0mm] rounded-full border-[1.2px] border-black flex items-center justify-center text-[6.5px] font-bold"
+                              >
+                                {alt}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })}
+
+                    {/* Marcador de fundo de coluna */}
+                    <div className="flex justify-center mt-1">
+                      <div className="w-5 h-1.5 bg-black"></div>
                     </div>
                   </div>
-
-                  {Array.from({ length: 30 }).map((_, rowIdx) => {
-                    const qNum = colIdx * 30 + rowIdx + 1
-                    if (qNum > gabarito.questoes_qtd) return null
-
-                    return (
-                      <div key={qNum} className="flex items-center h-[5.8mm] border-b border-slate-50">
-                        <div className="w-4 mr-1 text-[9px] font-black text-slate-800">
-                          {qNum.toString().padStart(2, '0')}
-                        </div>
-                        <div className="flex-1 flex justify-around">
-                          {['A', 'B', 'C', 'D', 'E'].map(alt => (
-                            <div 
-                              key={alt} 
-                              className="w-[4.0mm] h-[4.0mm] rounded-full border-[1.2px] border-black flex items-center justify-center text-[6.5px] font-bold"
-                            >
-                              {alt}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
-
-                  {/* Marcador de fundo de coluna */}
-                  <div className="flex justify-center mt-1">
-                    <div className="w-5 h-1.5 bg-black"></div>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
 
