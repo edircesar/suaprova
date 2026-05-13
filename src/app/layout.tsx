@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,14 +28,6 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <head>
-        {/* OpenCV carregado via script tag simples para compatibilidade com Server Component */}
-        <script 
-          src="https://cdn.jsdelivr.net/npm/@techstardigital/opencv-js@4.5.4-release.3/opencv.js" 
-          async
-          defer
-        />
-      </head>
       <body className="h-screen flex flex-col overflow-hidden">
         <div className="flex-1 overflow-auto flex flex-col">
           {children}
@@ -42,6 +35,10 @@ export default function RootLayout({
         <footer className="py-3 text-center text-xs font-medium text-slate-500 bg-white dark:bg-slate-950 border-t shrink-0 z-50">
           by projeto7 - versão 1.0
         </footer>
+        <Script 
+          src="https://cdn.jsdelivr.net/npm/@techstardigital/opencv-js@4.5.4-release.3/opencv.js" 
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );
