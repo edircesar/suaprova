@@ -22,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="flex min-h-full flex-1 w-full bg-slate-50 dark:bg-slate-950">
       {/* ... sidebar content ... */}
-      <aside className="w-64 border-r bg-white dark:bg-slate-900 hidden md:flex flex-col">
+      <aside className="w-64 border-r bg-white dark:bg-slate-900 hidden md:flex flex-col print:hidden">
         {/* ... existing sidebar ... */}
         <div className="h-16 flex items-center px-6 border-b">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg mr-3">
@@ -71,7 +71,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="h-16 border-b bg-white dark:bg-slate-900 flex items-center justify-between px-6">
+        <header className="h-16 border-b bg-white dark:bg-slate-900 flex items-center justify-between px-6 print:hidden">
           {/* ... existing mobile header ... */}
           <div className="md:hidden flex items-center">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg mr-3">
