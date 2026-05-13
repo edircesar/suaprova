@@ -123,16 +123,16 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
 
           {/* Grade de Respostas Compacta */}
           <div className="flex gap-4 flex-1">
-            {/* Escadinha lateral expandida para 45 linhas */}
+            {/* Escadinha lateral expandida para 35 linhas */}
             <div className="flex flex-col gap-[1.5mm] pt-6">
-              {Array.from({ length: 45 }).map((_, i) => (
+              {Array.from({ length: 35 }).map((_, i) => (
                 <div key={i} className={`w-3 h-1.5 bg-black ${i % 2 === 0 ? 'opacity-100' : 'opacity-20'}`}></div>
               ))}
             </div>
 
             <div className="flex-1 grid grid-cols-3 gap-x-6">
               {Array.from({ length: 3 }).map((_, colIdx) => {
-                const rowsPerCol = 45 // Aumentado para preencher o espaço vertical
+                const rowsPerCol = 35 // Definido conforme solicitado para 1-35, 36-70, 71-90
                 const startNum = colIdx * rowsPerCol + 1
                 
                 // Se a coluna começar além do total de questões, não renderiza nada
