@@ -19,7 +19,28 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
   const config = getTemplateConfig(gabarito.questoes_qtd)
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8 print:p-0 print:bg-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8 print:p-0 print:bg-white flex flex-col items-center">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          @page { size: A4; margin: 0; }
+          body { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            background: white !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: flex-start !important;
+          }
+          .print-container {
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+          }
+          .no-print { display: none !important; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+      `}} />
       {/* Menu Superior (Não imprime) */}
       <div className="max-w-[210mm] mx-auto mb-6 flex items-center justify-between px-4 print:hidden">
         <div>
@@ -30,7 +51,7 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
       </div>
 
       {/* Folha A4 Profissional */}
-      <div className="w-[210mm] h-[297mm] mx-auto bg-white shadow-2xl print:shadow-none relative box-border overflow-hidden p-[10mm] font-sans text-black border print:border-0">
+      <div className="w-[210mm] h-[297mm] bg-white shadow-2xl print:shadow-none relative box-border overflow-hidden p-[10mm] font-sans text-black border print:border-0 print-container">
         
         {/* MARCADORES DE CANTO - Limite de segurança aumentado */}
         <div className="absolute top-[8mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-tl"></div>
@@ -156,14 +177,6 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
 
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        @media print {
-          body { margin: 0; padding: 0; background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .print\\:hidden { display: none !important; }
-          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          @page { size: A4; margin: 0; }
-        }
-      `}} />
     </div>
   )
 }
