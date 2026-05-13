@@ -14,20 +14,20 @@ export interface TemplateConfig {
 export const ALTERNATIVAS = ['A', 'B', 'C', 'D', 'E']
 
 // Marcadores de canto (posição relativa na página A4 em mm)
-export const MARKER_SIZE_MM = 8 // 8mm quadrados
+export const MARKER_SIZE_MM = 7 // 7mm quadrados
 export const MARKER_POSITIONS = {
   topLeft: { x: 10, y: 10 },
-  topRight: { x: 192, y: 10 },
-  bottomLeft: { x: 10, y: 280 },
-  bottomRight: { x: 192, y: 280 },
+  topRight: { x: 200, y: 10 },
+  bottomLeft: { x: 10, y: 282 },
+  bottomRight: { x: 200, y: 282 },
 }
 
 // Área útil da grade (entre os marcadores, em %)
 export const GRID_AREA = {
-  startX: 5,   // % da largura entre marcadores
-  startY: 25,  // % da altura entre marcadores (deixar espaço para cabeçalho)
-  endX: 95,
-  endY: 95,
+  startX: 8,   // % da largura entre marcadores
+  startY: 18,  // % da altura entre marcadores (subimos para aproveitar o topo)
+  endX: 92,
+  endY: 90,
 }
 
 // Tamanho relativo das bolinhas

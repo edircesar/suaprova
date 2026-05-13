@@ -31,22 +31,17 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
       </div>
 
       {/* Folha A4 */}
-      <div className="w-[210mm] h-[297mm] mx-auto bg-white shadow-2xl print:shadow-none relative box-border overflow-hidden p-[10mm]">
+      <div className="w-[210mm] h-[297mm] mx-auto bg-white shadow-2xl print:shadow-none relative box-border overflow-hidden p-[15mm]">
         
-        {/* Marcadores de Canto (Preto absoluto para detecção) */}
-        <div className="absolute top-[10mm] left-[10mm] w-[8mm] h-[8mm] bg-black" id="marker-tl"></div>
-        <div className="absolute top-[10mm] right-[10mm] w-[8mm] h-[8mm] bg-black" id="marker-tr"></div>
-        <div className="absolute bottom-[10mm] left-[10mm] w-[8mm] h-[8mm] bg-black" id="marker-bl"></div>
-        <div className="absolute bottom-[10mm] right-[10mm] w-[8mm] h-[8mm] bg-black" id="marker-br"></div>
+        {/* Marcadores de Canto - Reposicionados para não cortar e não bater nas questões */}
+        <div className="absolute top-[10mm] left-[10mm] w-[7mm] h-[7mm] bg-black" id="marker-tl"></div>
+        <div className="absolute top-[10mm] right-[10mm] w-[7mm] h-[7mm] bg-black" id="marker-tr"></div>
+        <div className="absolute bottom-[15mm] left-[10mm] w-[7mm] h-[7mm] bg-black" id="marker-bl"></div>
+        <div className="absolute bottom-[15mm] right-[10mm] w-[7mm] h-[7mm] bg-black" id="marker-br"></div>
 
-        {/* Cabeçalho da Prova */}
-        <div className="mt-12 mb-8 border-b-2 border-black pb-4 px-8">
-          <div className="flex justify-between items-end mb-6">
-            <div className="text-2xl font-black uppercase tracking-tighter italic text-indigo-600">SuaProva AI</div>
-            <div className="text-right text-xs font-bold text-slate-400">ID: {gabarito.id.slice(0,8)}</div>
-          </div>
-          
-          <h2 className="text-xl font-bold text-center mb-6">{gabarito.nome}</h2>
+        {/* Cabeçalho da Prova - Removido logo e ID, subido o conteúdo */}
+        <div className="mt-4 mb-6 border-b-2 border-black pb-4 px-4">
+          <h2 className="text-2xl font-black text-center mb-6 uppercase tracking-tight">{gabarito.nome}</h2>
           
           <div className="space-y-4">
             <div className="flex gap-4">
@@ -56,17 +51,17 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
               </div>
             </div>
             <div className="flex gap-4">
-              <div className="w-32 border-b border-black pb-1">
-                <span className="text-[10px] font-bold uppercase block mb-1">Turma</span>
+              <div className="w-48 border-b border-black pb-1">
+                <span className="text-[10px] font-bold uppercase block mb-1">Turma / Período</span>
                 <div className="h-6"></div>
               </div>
-              <div className="w-32 border-b border-black pb-1">
+              <div className="w-40 border-b border-black pb-1">
                 <span className="text-[10px] font-bold uppercase block mb-1">Data</span>
                 <div className="h-6"></div>
               </div>
               <div className="flex-1 border-b border-black pb-1 text-right">
-                <span className="text-[10px] font-bold uppercase block mb-1">Questões</span>
-                <div className="h-6 font-bold">{gabarito.questoes_qtd}</div>
+                <span className="text-[10px] font-bold uppercase block mb-1">Total de Questões</span>
+                <div className="h-6 font-bold text-lg">{gabarito.questoes_qtd}</div>
               </div>
             </div>
           </div>
