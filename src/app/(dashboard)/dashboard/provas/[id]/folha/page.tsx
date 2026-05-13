@@ -142,8 +142,8 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
                   <div key={colIdx} className="space-y-0 flex flex-col">
                     <div className="flex items-center h-[6.5mm] border-b-2 border-black mb-0.5">
                       <div className="w-3 h-1.5 bg-black mr-2"></div>
-                      <div className="flex-1 flex justify-around text-[8.5px] font-black">
-                        {['A', 'B', 'C', 'D', 'E'].map(a => <div key={a} className="w-3.5 text-center">{a}</div>)}
+                      <div className="flex-1 flex justify-center gap-x-[1.5mm] pr-[1.5mm]">
+                        {['A', 'B', 'C', 'D', 'E'].map(a => <div key={a} className="w-[4.0mm] text-center text-[8.5px] font-black">{a}</div>)}
                       </div>
                     </div>
 
@@ -156,7 +156,7 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
                           <div className="w-4 mr-1 text-[9px] font-black text-slate-800">
                             {qNum.toString().padStart(2, '0')}
                           </div>
-                          <div className="flex-1 flex justify-around">
+                          <div className="flex-1 flex justify-center gap-x-[1.5mm] pr-[1.5mm]">
                             {['A', 'B', 'C', 'D', 'E'].map(alt => (
                               <div 
                                 key={alt} 
