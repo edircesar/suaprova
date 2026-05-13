@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { revalidatePath } from 'next/cache'
 
 export async function saveCorrecao(data: {
@@ -39,4 +40,136 @@ export async function saveCorrecao(data: {
 
   revalidatePath('/dashboard')
   return { success: true }
+}
+
+/**
+ * Processar imagem de prova usando Google Gemini Vision
+ * Recebe a imagem em base64 e o gabarito_id, retorna as respostas detectadas
+ */
+export async function processarProvaComIA(imageBase64: string, gabaritoId: string) {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  
+  if (!session) {
+    throw new Error('Não autorizado')
+  }
+
+  // 1. Buscar a chave da API do Gemini nas configurações do sistema
+  const { data: settings } = await supabase
+    .from('system_settings')
+    .select('gemini_api_key')
+    .eq('id', 1)
+    .single()
+
+  const apiKey = settings?.gemini_api_key || process.env.GEMINI_API_KEY
+
+  if (!apiKey) {
+    throw new Error('Chave da API Gemini não configurada. Peça ao administrador para configurá-la em Admin > Configurações.')
+  }
+
+  // 2. Buscar o gabarito
+  const { data: gabarito } = await supabase
+    .from('gabaritos')
+    .select('*')
+    .eq('id', gabaritoId)
+    .single()
+
+  if (!gabarito) {
+    throw new Error('Gabarito não encontrado.')
+  }
+
+  // 3. Enviar para o Gemini Vision
+  const genAI = new GoogleGenerativeAI(apiKey)
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+
+  // Remover o prefixo data:image/...;base64, se existir
+  const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '')
+
+  const prompt = `Você é um sistema de correção de provas objetivas. Analise esta imagem de um gabarito/folha de respostas preenchida por um aluno.
+
+INSTRUÇÕES:
+1. Identifique TODAS as questões marcadas na folha de respostas.
+2. Para cada questão, identifique qual alternativa foi marcada (A, B, C, D ou E).
+3. Se uma questão não foi marcada ou está ilegível, use null.
+4. A prova tem ${gabarito.questoes_qtd} questões.
+
+RESPONDA EXATAMENTE neste formato JSON (sem markdown, sem explicação, APENAS o JSON):
+{
+  "respostas": {
+    "1": "A",
+    "2": "B",
+    "3": "C"
+  },
+  "aluno_nome": "nome se conseguir ler, ou null"
+}
+
+Analise a imagem agora:`
+
+  try {
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: base64Data
+        }
+      }
+    ])
+
+    const responseText = result.response.text()
+    
+    // Limpar a resposta (remover possíveis markdown wrappers)
+    const cleanedResponse = responseText
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim()
+
+    const parsed = JSON.parse(cleanedResponse)
+    const respostasAluno = parsed.respostas || {}
+    const alunoNome = parsed.aluno_nome || null
+
+    // 4. Comparar com o gabarito oficial
+    let acertos = 0
+    const detalhes: Record<string, { resposta_aluno: string | null; resposta_correta: string; correto: boolean }> = {}
+
+    for (let i = 1; i <= gabarito.questoes_qtd; i++) {
+      const key = i.toString()
+      const respostaAluno = respostasAluno[key] || null
+      const respostaCorreta = gabarito.respostas[key]
+      const correto = respostaAluno === respostaCorreta
+
+      if (correto) acertos++
+      
+      detalhes[key] = {
+        resposta_aluno: respostaAluno,
+        resposta_correta: respostaCorreta,
+        correto
+      }
+    }
+
+    // 5. Calcular nota
+    const valorPorQuestao = (gabarito.valor_total || 10.0) / gabarito.questoes_qtd
+    const nota = acertos * valorPorQuestao
+
+    return {
+      success: true,
+      acertos,
+      total_questoes: gabarito.questoes_qtd,
+      nota: parseFloat(nota.toFixed(2)),
+      respostas_aluno: respostasAluno,
+      aluno_nome: alunoNome,
+      detalhes
+    }
+  } catch (err: any) {
+    console.error('Erro ao processar com Gemini:', err)
+    
+    if (err.message?.includes('API key')) {
+      throw new Error('Chave da API Gemini inválida. Verifique em Admin > Configurações.')
+    }
+    if (err.message?.includes('JSON')) {
+      throw new Error('A IA não conseguiu ler a folha de respostas claramente. Tente enviar uma foto com melhor qualidade.')
+    }
+    
+    throw new Error(`Erro na análise: ${err.message}`)
+  }
 }

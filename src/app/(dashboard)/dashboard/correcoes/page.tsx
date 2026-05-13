@@ -2,14 +2,15 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { UploadCloud, Image as ImageIcon, X, CheckCircle, Loader2, FileText, AlertCircle } from 'lucide-react'
+import { UploadCloud, X, CheckCircle, Loader2, AlertCircle, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { saveCorrecao } from './actions'
+import { processarProvaComIA, saveCorrecao } from './actions'
 
 export default function CorrecoesPage() {
   const [files, setFiles] = useState<File[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [processingIndex, setProcessingIndex] = useState(-1)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
@@ -20,7 +21,7 @@ export default function CorrecoesPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
-  // 1. Carregar Gabaritos do banco
+  // Carregar Gabaritos do banco
   useEffect(() => {
     async function fetchGabaritos() {
       const { data } = await supabase.from('gabaritos').select('*').order('created_at', { ascending: false })
@@ -42,7 +43,6 @@ export default function CorrecoesPage() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-    
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleFiles(Array.from(e.dataTransfer.files))
     }
@@ -65,33 +65,17 @@ export default function CorrecoesPage() {
     setFiles(prev => prev.filter((_, index) => index !== indexToRemove))
   }
 
-  // 2. Verificar se OpenCV está disponível (só no momento de corrigir)
-  const waitForOpenCV = (): Promise<any> => {
+  // Converter File para base64
+  const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
-      const cv = (window as any).cv
-      if (cv && cv.Mat) {
-        resolve(cv)
-        return
-      }
-      
-      // Tentar carregar dinamicamente se ainda não carregou
-      let attempts = 0
-      const maxAttempts = 50 // 10 segundos
-      const check = setInterval(() => {
-        attempts++
-        const cvCheck = (window as any).cv
-        if (cvCheck && cvCheck.Mat) {
-          clearInterval(check)
-          resolve(cvCheck)
-        } else if (attempts >= maxAttempts) {
-          clearInterval(check)
-          reject(new Error('O motor de visão computacional não conseguiu carregar. Tente recarregar a página (F5).'))
-        }
-      }, 200)
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
     })
   }
 
-  // 3. Lógica Principal de Processamento
+  // Processar as provas com Gemini IA
   const handleSubmit = async () => {
     if (files.length === 0 || !selectedGabaritoId) return
     
@@ -102,59 +86,42 @@ export default function CorrecoesPage() {
     const gabarito = gabaritos.find(g => g.id === selectedGabaritoId)
     if (!gabarito) return
 
+    const processingResults = []
+
     try {
-      // Aguardar OpenCV ficar pronto
-      const cv = await waitForOpenCV()
-      
-      // Import dinâmico do detector
-      const { ExamDetector } = await import('@/lib/vision/detector')
-      const detector = new ExamDetector(cv)
-      const processingResults = []
-
-      for (const file of files) {
-        // Criar imagem temporária para o OpenCV ler
-        const img = await loadImage(file)
+      for (let i = 0; i < files.length; i++) {
+        setProcessingIndex(i)
+        const file = files[i]
         
-        // Processar com OpenCV
-        const detection = await detector.processImage(img)
+        // Converter imagem para base64
+        const base64 = await fileToBase64(file)
         
-        // Comparar com Gabarito
-        let acertos = 0
-        const respostasFormatadas: Record<string, string> = {}
+        // Enviar para o servidor (Gemini Vision)
+        const resultado = await processarProvaComIA(base64, selectedGabaritoId)
         
-        const questoesDetalhadas = detection.map(d => {
-          const correta = gabarito.respostas[d.question.toString()]
-          const isCorrect = d.answer === correta
-          if (isCorrect) acertos++
-          respostasFormatadas[d.question.toString()] = d.answer || ''
-          return { ...d, correta, isCorrect }
-        })
+        if (resultado.success) {
+          // Tentar usar nome detectado pela IA, senão usar nome do arquivo
+          const alunoNome = resultado.aluno_nome || file.name.split('.')[0].replace(/[-_]/g, ' ')
 
-        // Cálculo da nota baseado no Valor Total do Gabarito
-        const valorPorQuestao = (gabarito.valor_total || 10.0) / gabarito.questoes_qtd
-        const notaFinal = acertos * valorPorQuestao
-        
-        // Tentar extrair nome do arquivo (ex: "Joao Silva.jpg")
-        const alunoNome = file.name.split('.')[0].replace(/[-_]/g, ' ')
+          // Salvar no banco
+          await saveCorrecao({
+            gabarito_id: selectedGabaritoId,
+            aluno_nome: alunoNome,
+            acertos: resultado.acertos,
+            total_questoes: resultado.total_questoes,
+            nota: resultado.nota,
+            respostas_aluno: resultado.respostas_aluno
+          })
 
-        // SALVAR NO BANCO
-        await saveCorrecao({
-          gabarito_id: selectedGabaritoId,
-          aluno_nome: alunoNome,
-          acertos,
-          total_questoes: gabarito.questoes_qtd,
-          nota: notaFinal,
-          respostas_aluno: respostasFormatadas
-        })
-
-        processingResults.push({
-          fileName: file.name,
-          alunoNome,
-          acertos,
-          total: gabarito.questoes_qtd,
-          nota: notaFinal.toFixed(1),
-          detalhes: questoesDetalhadas
-        })
+          processingResults.push({
+            fileName: file.name,
+            alunoNome,
+            acertos: resultado.acertos,
+            total: resultado.total_questoes,
+            nota: resultado.nota.toFixed(1),
+            detalhes: resultado.detalhes
+          })
+        }
       }
 
       setResults(processingResults)
@@ -165,20 +132,8 @@ export default function CorrecoesPage() {
       setError(err.message || 'Erro ao processar as imagens.')
     } finally {
       setIsUploading(false)
+      setProcessingIndex(-1)
     }
-  }
-
-  // Helper para carregar File em HTMLImageElement
-  const loadImage = (file: File): Promise<HTMLImageElement> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const img = new Image()
-        img.onload = () => resolve(img)
-        img.src = e.target?.result as string
-      }
-      reader.readAsDataURL(file)
-    })
   }
 
   return (
@@ -239,14 +194,27 @@ export default function CorrecoesPage() {
                             alt={file.name}
                             className="w-full h-full object-cover"
                           />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-end p-2">
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); removeFile(index); }}
-                              className="bg-white/20 hover:bg-red-500 text-white rounded-full p-1 backdrop-blur-sm transition-colors"
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
+                          {isUploading && index === processingIndex && (
+                            <div className="absolute inset-0 bg-indigo-900/60 flex flex-col items-center justify-center">
+                              <Loader2 className="h-8 w-8 text-white animate-spin mb-2" />
+                              <span className="text-white text-xs font-medium">Analisando...</span>
+                            </div>
+                          )}
+                          {isUploading && index < processingIndex && (
+                            <div className="absolute inset-0 bg-emerald-900/60 flex items-center justify-center">
+                              <CheckCircle className="h-8 w-8 text-white" />
+                            </div>
+                          )}
+                          {!isUploading && (
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-end p-2">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); removeFile(index); }}
+                                className="bg-white/20 hover:bg-red-500 text-white rounded-full p-1 backdrop-blur-sm transition-colors"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -261,7 +229,7 @@ export default function CorrecoesPage() {
                   <div>
                     <CardTitle className="text-emerald-900 dark:text-emerald-300">Correção Concluída!</CardTitle>
                     <CardDescription className="text-emerald-700 dark:text-emerald-500">
-                      As imagens foram processadas com sucesso.
+                      {results.length} prova(s) processada(s) com sucesso.
                     </CardDescription>
                   </div>
                   <button 
@@ -328,6 +296,14 @@ export default function CorrecoesPage() {
                 </select>
               </div>
 
+              {/* Info: Powered by Gemini */}
+              <div className="rounded-lg bg-indigo-50 dark:bg-indigo-900/20 p-3 border border-indigo-100 dark:border-indigo-800/30 flex items-start gap-2">
+                <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
+                <p className="text-xs text-indigo-700 dark:text-indigo-300">
+                  Correção automática com <strong>IA Gemini</strong>. A IA analisa as marcações dos alunos e compara com o gabarito oficial.
+                </p>
+              </div>
+
               {error && (
                 <div className="rounded-lg bg-rose-50 dark:bg-rose-900/20 p-4 border border-rose-200 dark:border-rose-800/30 flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 mt-0.5 shrink-0" />
@@ -355,10 +331,13 @@ export default function CorrecoesPage() {
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processando com IA...
+                    Analisando prova {processingIndex + 1} de {files.length}...
                   </>
                 ) : (
-                  'Iniciar Correção'
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Iniciar Correção com IA
+                  </>
                 )}
               </button>
             </CardFooter>

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,10 +34,6 @@ export default function RootLayout({
         <footer className="py-3 text-center text-xs font-medium text-slate-500 bg-white dark:bg-slate-950 border-t shrink-0 z-50">
           by projeto7 - versão 1.0
         </footer>
-        <Script 
-          src="https://cdn.jsdelivr.net/npm/@techstardigital/opencv-js@4.5.4-release.3/opencv.js" 
-          strategy="lazyOnload"
-        />
       </body>
     </html>
   );
