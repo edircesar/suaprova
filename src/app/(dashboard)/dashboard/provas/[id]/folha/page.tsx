@@ -25,7 +25,8 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
           @page { size: A4; margin: 0; }
           body { 
             margin: 0 !important; 
-            @apply bg-background text-foreground;
+            background: white !important;
+            color: black !important;
             display: flex !important;
             justify-content: center !important;
             align-items: flex-start !important;
@@ -60,13 +61,12 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
         <div className="absolute bottom-[15mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-bl"></div>
         <div className="absolute bottom-[15mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-br"></div>
 
-        {/* MARCADORES LATERAIS MÉDIOS - Ajustados para não sobrepor questões */}
-        <div className="absolute top-[135mm] left-[8mm] w-[7mm] h-[4mm] bg-black"></div>
-        <div className="absolute top-[135mm] right-[8mm] w-[7mm] h-[4mm] bg-black"></div>
+        {/* MARCADOR LATERAL MÉDIO - Posicionamento em 135mm (fora da zona de questões) */}
+        <div className="absolute top-[135mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-ml"></div>
+        <div className="absolute top-[135mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-mr"></div>
 
-        {/* Container Principal de Conteúdo - Alinhado com os marcadores (8mm) */}
-        <div className="mx-[8mm] h-full flex flex-col">
-          {/* Espaçamento inicial para não colidir com marcadores do topo */}
+        <div className="relative z-10 flex flex-col h-full">
+          {/* Espaço para margem física superior */}
           <div className="h-[12mm]"></div>
 
           {/* Cabeçalho Superior Compacto */}
@@ -80,19 +80,16 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
 
           <div className="grid grid-cols-4 gap-2 mb-2">
             <div className="col-span-2 border-2 border-black p-0.5 px-2">
-              <span className="text-[7px] font-bold block uppercase">Nome do Aluno</span>
-              <div className="h-4"></div>
-            </div>
-              <span className="text-[8pt] font-bold block uppercase">Nome do Aluno</span>
+              <span className="text-[9pt] font-bold block uppercase">Nome do Aluno</span>
               <div className="h-4"></div>
             </div>
             <div className="border-2 border-black p-0.5 px-2">
-              <span className="text-[8pt] font-bold block uppercase">Turma</span>
+              <span className="text-[9pt] font-bold block uppercase">Turma</span>
               <div className="h-4"></div>
             </div>
             <div className="border-2 border-black p-0.5 px-2">
-              <span className="text-[8pt] font-bold block uppercase">Prova</span>
-              <div className="h-4 text-[10pt] font-bold flex items-center leading-none truncate">{gabarito.nome}</div>
+              <span className="text-[9pt] font-bold block uppercase">Prova</span>
+              <div className="h-4 text-[11pt] font-bold flex items-center leading-none truncate">{gabarito.nome}</div>
             </div>
           </div>
 
