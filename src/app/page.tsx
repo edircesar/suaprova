@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
+/** Build Trigger: Atualizando para SuaProva AI */
 export default async function Home() {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
