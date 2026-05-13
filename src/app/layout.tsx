@@ -32,7 +32,13 @@ export default function RootLayout({
         {/* Carregar OpenCV de forma otimizada */}
         <Script 
           src="https://docs.opencv.org/4.5.x/opencv.js" 
-          strategy="lazyOnload"
+          strategy="afterInteractive"
+          onLoad={() => {
+            console.log('OpenCV.js carregado com sucesso')
+          }}
+          onError={(e) => {
+            console.error('Erro ao carregar OpenCV.js', e)
+          }}
         />
       </head>
       <body className="h-screen flex flex-col overflow-hidden">

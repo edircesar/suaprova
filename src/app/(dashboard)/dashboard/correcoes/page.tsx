@@ -32,11 +32,12 @@ export default function CorrecoesPage() {
 
     // Verificar se OpenCV já carregou (carregado via layout.tsx)
     const checkCv = setInterval(() => {
-      if ((window as any).cv) {
+      const cv = (window as any).cv
+      if (cv && cv.Mat) { // Verifica se o objeto existe e se o motor WASM está pronto
         setIsCvLoaded(true)
         clearInterval(checkCv)
       }
-    }, 500)
+    }, 200)
 
     return () => clearInterval(checkCv)
   }, [])
