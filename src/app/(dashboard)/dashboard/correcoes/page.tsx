@@ -2,27 +2,44 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { UploadCloud, Image as ImageIcon, X, CheckCircle, Loader2, FileText } from 'lucide-react'
+import { UploadCloud, Image as ImageIcon, X, CheckCircle, Loader2, FileText, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { ExamDetector, BubbleResult } from '@/lib/vision/detector'
 
 export default function CorrecoesPage() {
   const [files, setFiles] = useState<File[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [gabaritos, setGabaritos] = useState<any[]>([])
-  const [selectedGabarito, setSelectedGabarito] = useState('')
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [error, setError] = useState<string | null>(null)
   
+  const [gabaritos, setGabaritos] = useState<any[]>([])
+  const [selectedGabaritoId, setSelectedGabaritoId] = useState('')
+  const [isCvLoaded, setIsCvLoaded] = useState(false)
+  const [results, setResults] = useState<any[]>([])
+  
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
+  // 1. Carregar Gabaritos e verificar OpenCV
   useEffect(() => {
     async function fetchGabaritos() {
       const { data } = await supabase.from('gabaritos').select('*').order('created_at', { ascending: false })
       if (data) setGabaritos(data)
     }
     fetchGabaritos()
+
+    // Verificar se OpenCV já carregou (carregado via layout.tsx)
+    const checkCv = setInterval(() => {
+      if ((window as any).cv) {
+        setIsCvLoaded(true)
+        clearInterval(checkCv)
+      }
+    }, 500)
+
+    return () => clearInterval(checkCv)
   }, [])
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(true)
@@ -49,120 +66,217 @@ export default function CorrecoesPage() {
   }
 
   const handleFiles = (newFiles: File[]) => {
-    // Filtrar apenas imagens
     const imageFiles = newFiles.filter(file => file.type.startsWith('image/'))
     setFiles(prev => [...prev, ...imageFiles])
+    setSuccess(false)
+    setError(null)
   }
 
   const removeFile = (indexToRemove: number) => {
     setFiles(prev => prev.filter((_, index) => index !== indexToRemove))
   }
 
+  // 2. Lógica Principal de Processamento
   const handleSubmit = async () => {
-    if (files.length === 0) return
+    if (files.length === 0 || !selectedGabaritoId || !isCvLoaded) return
     
     setIsUploading(true)
-    
-    // Simular o tempo de envio e processamento
-    await new Promise(resolve => setTimeout(resolve, 2500))
-    
-    setIsUploading(false)
-    setSuccess(true)
-    setFiles([])
-    
-    // Reset success message after 5 seconds
-    setTimeout(() => {
-      setSuccess(false)
-    }, 5000)
+    setError(null)
+    setResults([])
+
+    const gabarito = gabaritos.find(g => g.id === selectedGabaritoId)
+    if (!gabarito) return
+
+    const detector = new ExamDetector((window as any).cv)
+    const processingResults = []
+
+    try {
+      for (const file of files) {
+        // Criar imagem temporária para o OpenCV ler
+        const img = await loadImage(file)
+        
+        // Processar com OpenCV
+        const detection = await detector.processImage(img)
+        
+        // Comparar com Gabarito
+        let acertos = 0
+        const questoesDetalhadas = detection.map(d => {
+          const correta = gabarito.respostas[d.question.toString()]
+          const isCorrect = d.answer === correta
+          if (isCorrect) acertos++
+          return { ...d, correta, isCorrect }
+        })
+
+        const nota = (acertos / gabarito.questoes_qtd) * 10
+        
+        processingResults.push({
+          fileName: file.name,
+          acertos,
+          total: gabarito.questoes_qtd,
+          nota: nota.toFixed(1),
+          detalhes: questoesDetalhadas
+        })
+      }
+
+      setResults(processingResults)
+      setSuccess(true)
+      setFiles([])
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message || 'Erro ao processar as imagens.')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  // Helper para carregar File em HTMLImageElement
+  const loadImage = (file: File): Promise<HTMLImageElement> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => resolve(img)
+        img.src = e.target?.result as string
+      }
+      reader.readAsDataURL(file)
+    })
   }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Nova Correção</h1>
-        <p className="text-slate-500">Envie as imagens dos gabaritos preenchidos pelos alunos para processamento.</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Nova Correção</h1>
+          <p className="text-slate-500">Envie as imagens dos gabaritos preenchidos pelos alunos para processamento.</p>
+        </div>
+        {!isCvLoaded && (
+          <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-xs font-medium border border-amber-200">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Carregando Inteligência de Visão...
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Upload de Imagens</CardTitle>
-              <CardDescription>Arraste e solte as imagens ou clique para selecionar.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div 
-                className={`border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${
-                  isDragging ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-slate-300 hover:border-slate-400 dark:border-slate-700 dark:hover:border-slate-600'
-                }`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  multiple 
-                  accept="image/jpeg,image/png,image/webp" 
-                  onChange={handleFileInput}
-                />
-                
-                <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mb-4">
-                  <UploadCloud size={32} />
+          {!success ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload de Imagens</CardTitle>
+                <CardDescription>Arraste e solte as imagens ou clique para selecionar.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div 
+                  className={`border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${
+                    isDragging ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-slate-300 hover:border-slate-400 dark:border-slate-700 dark:hover:border-slate-600'
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    multiple 
+                    accept="image/jpeg,image/png,image/webp" 
+                    onChange={handleFileInput}
+                  />
+                  
+                  <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mb-4">
+                    <UploadCloud size={32} />
+                  </div>
+                  <p className="text-lg font-medium text-slate-900 dark:text-white mb-1">
+                    Selecione as fotos das provas
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                    Formatos JPG, PNG ou WEBP
+                  </p>
                 </div>
-                <p className="text-lg font-medium text-slate-900 dark:text-white mb-1">
-                  Selecione as imagens
-                </p>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                  PNG, JPG ou WEBP de até 10MB
-                </p>
-                <div className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium rounded-md shadow-sm">
-                  Procurar arquivos
-                </div>
-              </div>
 
-              {files.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="text-sm font-medium text-slate-900 dark:text-white mb-3">
-                    Arquivos selecionados ({files.length})
-                  </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {files.map((file, index) => (
-                      <div key={index} className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-[3/4] bg-slate-100 dark:bg-slate-900">
-                        <img 
-                          src={URL.createObjectURL(file)} 
-                          alt={file.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-end p-2">
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); removeFile(index); }}
-                            className="bg-white/20 hover:bg-red-500 text-white rounded-full p-1 backdrop-blur-sm transition-colors"
-                          >
-                            <X size={16} />
-                          </button>
+                {files.length > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-sm font-medium text-slate-900 dark:text-white mb-3">
+                      Arquivos selecionados ({files.length})
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      {files.map((file, index) => (
+                        <div key={index} className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-[3/4] bg-slate-100 dark:bg-slate-900">
+                          <img 
+                            src={URL.createObjectURL(file)} 
+                            alt={file.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-end p-2">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); removeFile(index); }}
+                              className="bg-white/20 hover:bg-red-500 text-white rounded-full p-1 backdrop-blur-sm transition-colors"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
                         </div>
-                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                          <p className="text-xs text-white truncate" title={file.name}>
-                            {file.name}
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-emerald-200 dark:border-emerald-900 shadow-lg">
+              <CardHeader className="bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800/30">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-emerald-900 dark:text-emerald-300">Correção Concluída!</CardTitle>
+                    <CardDescription className="text-emerald-700 dark:text-emerald-500">
+                      As imagens foram processadas com sucesso.
+                    </CardDescription>
+                  </div>
+                  <button 
+                    onClick={() => { setSuccess(false); setResults([]); }}
+                    className="text-sm font-medium text-emerald-800 hover:underline"
+                  >
+                    Nova Correção
+                  </button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  {results.map((res, i) => (
+                    <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center font-bold text-slate-700">
+                          {i + 1}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[200px]">
+                            {res.fileName}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {res.acertos} acertos de {res.total}
                           </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="text-right">
+                        <p className={`text-2xl font-black ${parseFloat(res.nota) >= 6 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {res.nota}
+                        </p>
+                        <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Nota</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Configuração</CardTitle>
-              <CardDescription>Defina os parâmetros para a correção.</CardDescription>
+              <CardDescription>Selecione o gabarito oficial.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -170,8 +284,8 @@ export default function CorrecoesPage() {
                   Gabarito Oficial
                 </label>
                 <select 
-                  value={selectedGabarito}
-                  onChange={(e) => setSelectedGabarito(e.target.value)}
+                  value={selectedGabaritoId}
+                  onChange={(e) => setSelectedGabaritoId(e.target.value)}
                   className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300"
                 >
                   <option value="">Selecione um gabarito...</option>
@@ -181,28 +295,22 @@ export default function CorrecoesPage() {
                     </option>
                   ))}
                 </select>
-                <p className="text-[0.8rem] text-slate-500">
-                  O gabarito que será usado como base para corrigir estas provas.
-                </p>
               </div>
 
-              <div className="rounded-lg bg-indigo-50 dark:bg-indigo-900/20 p-4 border border-indigo-100 dark:border-indigo-800/30">
-                <div className="flex items-start gap-3">
-                  <FileText className="h-5 w-5 text-indigo-600 dark:text-indigo-400 mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-medium text-indigo-900 dark:text-indigo-300">Custo estimado</h4>
-                    <p className="text-sm text-indigo-700 dark:text-indigo-400 mt-1">
-                      {files.length} créditos serão deduzidos do seu saldo (1 crédito por prova).
-                    </p>
-                  </div>
+              {error && (
+                <div className="rounded-lg bg-rose-50 dark:bg-rose-900/20 p-4 border border-rose-200 dark:border-rose-800/30 flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 mt-0.5" />
+                  <p className="text-sm font-medium text-rose-900 dark:text-rose-300">
+                    {error}
+                  </p>
                 </div>
-              </div>
+              )}
 
               {success && (
-                <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-4 border border-emerald-200 dark:border-emerald-800/30 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2">
+                <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-4 border border-emerald-200 dark:border-emerald-800/30 flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                   <p className="text-sm font-medium text-emerald-900 dark:text-emerald-300">
-                    Provas enviadas com sucesso! A correção está em andamento.
+                    Processamento finalizado!
                   </p>
                 </div>
               )}
@@ -210,13 +318,13 @@ export default function CorrecoesPage() {
             <CardFooter>
               <button 
                 onClick={handleSubmit}
-                disabled={files.length === 0 || isUploading}
-                className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-slate-900 text-slate-50 hover:bg-slate-900/90 h-10 px-4 py-2 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50/90"
+                disabled={files.length === 0 || isUploading || !selectedGabaritoId || !isCvLoaded}
+                className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-slate-900 text-slate-50 hover:bg-slate-900/90 h-12 px-4 py-2 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50/90 shadow-lg"
               >
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processando...
+                    Processando com IA...
                   </>
                 ) : (
                   'Iniciar Correção'
