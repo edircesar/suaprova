@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { UploadCloud, Image as ImageIcon, X, CheckCircle, Loader2, FileText, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { ExamDetector, BubbleResult } from '@/lib/vision/detector'
 import { saveCorrecao } from './actions'
 
 export default function CorrecoesPage() {
@@ -16,30 +15,18 @@ export default function CorrecoesPage() {
   
   const [gabaritos, setGabaritos] = useState<any[]>([])
   const [selectedGabaritoId, setSelectedGabaritoId] = useState('')
-  const [isCvLoaded, setIsCvLoaded] = useState(false)
   const [results, setResults] = useState<any[]>([])
   
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
-  // 1. Carregar Gabaritos e verificar OpenCV
+  // 1. Carregar Gabaritos do banco
   useEffect(() => {
     async function fetchGabaritos() {
       const { data } = await supabase.from('gabaritos').select('*').order('created_at', { ascending: false })
       if (data) setGabaritos(data)
     }
     fetchGabaritos()
-
-    // Verificar se OpenCV já carregou (carregado via layout.tsx)
-    const checkCv = setInterval(() => {
-      const cv = (window as any).cv
-      if (cv && cv.Mat) { // Verifica se o objeto existe e se o motor WASM está pronto
-        setIsCvLoaded(true)
-        clearInterval(checkCv)
-      }
-    }, 200)
-
-    return () => clearInterval(checkCv)
   }, [])
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -78,9 +65,35 @@ export default function CorrecoesPage() {
     setFiles(prev => prev.filter((_, index) => index !== indexToRemove))
   }
 
-  // 2. Lógica Principal de Processamento
+  // 2. Verificar se OpenCV está disponível (só no momento de corrigir)
+  const waitForOpenCV = (): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const cv = (window as any).cv
+      if (cv && cv.Mat) {
+        resolve(cv)
+        return
+      }
+      
+      // Tentar carregar dinamicamente se ainda não carregou
+      let attempts = 0
+      const maxAttempts = 50 // 10 segundos
+      const check = setInterval(() => {
+        attempts++
+        const cvCheck = (window as any).cv
+        if (cvCheck && cvCheck.Mat) {
+          clearInterval(check)
+          resolve(cvCheck)
+        } else if (attempts >= maxAttempts) {
+          clearInterval(check)
+          reject(new Error('O motor de visão computacional não conseguiu carregar. Tente recarregar a página (F5).'))
+        }
+      }, 200)
+    })
+  }
+
+  // 3. Lógica Principal de Processamento
   const handleSubmit = async () => {
-    if (files.length === 0 || !selectedGabaritoId || !isCvLoaded) return
+    if (files.length === 0 || !selectedGabaritoId) return
     
     setIsUploading(true)
     setError(null)
@@ -89,10 +102,15 @@ export default function CorrecoesPage() {
     const gabarito = gabaritos.find(g => g.id === selectedGabaritoId)
     if (!gabarito) return
 
-    const detector = new ExamDetector((window as any).cv)
-    const processingResults = []
-
     try {
+      // Aguardar OpenCV ficar pronto
+      const cv = await waitForOpenCV()
+      
+      // Import dinâmico do detector
+      const { ExamDetector } = await import('@/lib/vision/detector')
+      const detector = new ExamDetector(cv)
+      const processingResults = []
+
       for (const file of files) {
         // Criar imagem temporária para o OpenCV ler
         const img = await loadImage(file)
@@ -165,17 +183,9 @@ export default function CorrecoesPage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Nova Correção</h1>
-          <p className="text-slate-500">Envie as imagens dos gabaritos preenchidos pelos alunos para processamento.</p>
-        </div>
-        {!isCvLoaded && (
-          <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-xs font-medium border border-amber-200">
-            <Loader2 className="h-3 w-3 animate-spin" />
-            Carregando Inteligência de Visão...
-          </div>
-        )}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Nova Correção</h1>
+        <p className="text-slate-500">Envie as imagens dos gabaritos preenchidos pelos alunos para processamento.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -320,7 +330,7 @@ export default function CorrecoesPage() {
 
               {error && (
                 <div className="rounded-lg bg-rose-50 dark:bg-rose-900/20 p-4 border border-rose-200 dark:border-rose-800/30 flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 mt-0.5 shrink-0" />
                   <p className="text-sm font-medium text-rose-900 dark:text-rose-300">
                     {error}
                   </p>
@@ -339,7 +349,7 @@ export default function CorrecoesPage() {
             <CardFooter>
               <button 
                 onClick={handleSubmit}
-                disabled={files.length === 0 || isUploading || !selectedGabaritoId || !isCvLoaded}
+                disabled={files.length === 0 || isUploading || !selectedGabaritoId}
                 className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-slate-900 text-slate-50 hover:bg-slate-900/90 h-12 px-4 py-2 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50/90 shadow-lg"
               >
                 {isUploading ? (
