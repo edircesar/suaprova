@@ -31,13 +31,10 @@ export default function RootLayout({
       <head>
         {/* Carregar OpenCV de forma otimizada */}
         <Script 
-          src="https://docs.opencv.org/4.5.x/opencv.js" 
+          src="https://cdn.jsdelivr.net/npm/@techstardigital/opencv-js@4.5.4-release.3/opencv.js" 
           strategy="afterInteractive"
           onLoad={() => {
-            console.log('OpenCV.js carregado com sucesso')
-          }}
-          onError={(e) => {
-            console.error('Erro ao carregar OpenCV.js', e)
+            console.log('OpenCV.js carregado com sucesso via CDN')
           }}
         />
       </head>
