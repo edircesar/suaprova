@@ -32,11 +32,15 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
       {/* Folha A4 Profissional */}
       <div className="w-[210mm] h-[297mm] mx-auto bg-white shadow-2xl print:shadow-none relative box-border overflow-hidden p-[10mm] font-sans text-black border print:border-0">
         
-        {/* MARCADORES DE CANTO - Limite de segurança ajustado */}
+        {/* MARCADORES DE CANTO - Limite de segurança aumentado */}
         <div className="absolute top-[8mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-tl"></div>
         <div className="absolute top-[8mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-tr"></div>
-        <div className="absolute bottom-[12mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-bl"></div>
-        <div className="absolute bottom-[12mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-br"></div>
+        <div className="absolute bottom-[15mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-bl"></div>
+        <div className="absolute bottom-[15mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-br"></div>
+
+        {/* MARCADORES LATERAIS MÉDIOS */}
+        <div className="absolute top-[50%] left-[8mm] translate-y-[-50%] w-[7mm] h-[4mm] bg-black"></div>
+        <div className="absolute top-[50%] right-[8mm] translate-y-[-50%] w-[7mm] h-[4mm] bg-black"></div>
 
         {/* Cabeçalho Superior Compacto */}
         <div className="px-8 mt-4">
@@ -133,6 +137,11 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
                     </div>
                   )
                 })}
+
+                {/* Marcador de fundo de coluna */}
+                <div className="flex justify-center mt-1">
+                  <div className="w-5 h-1.5 bg-black"></div>
+                </div>
               </div>
             ))}
           </div>

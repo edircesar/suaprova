@@ -18,16 +18,16 @@ export const MARKER_SIZE_MM = 7 // 7mm quadrados
 export const MARKER_POSITIONS = {
   topLeft: { x: 8, y: 8 },
   topRight: { x: 202, y: 8 },
-  bottomLeft: { x: 8, y: 285 },
-  bottomRight: { x: 202, y: 285 },
+  bottomLeft: { x: 8, y: 282 },
+  bottomRight: { x: 202, y: 282 },
 }
 
 // Área útil da grade (entre os marcadores, em %)
 export const GRID_AREA = {
   startX: 14,  // % da largura entre marcadores (deixar espaço para a "escadinha")
-  startY: 24,  // % da altura entre marcadores (subiu devido ao cabeçalho compacto)
+  startY: 25,  // % da altura entre marcadores (ajustado para novo cabeçalho)
   endX: 95,
-  endY: 95,
+  endY: 94,
 }
 
 // Tamanho relativo das bolinhas
