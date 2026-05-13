@@ -19,14 +19,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 font-bold text-xl">
               C
             </div>
-            <h1 className="text-3xl font-bold tracking-tight">CheckPro AI</h1>
+            <h1 className="text-3xl font-bold tracking-tight">SuaProva AI</h1>
+            <p className="text-slate-200 mt-2">A tecnologia a favor da educação.</p>
           </div>
-          <h2 className="text-4xl font-medium mb-6 leading-tight">
-            A forma mais inteligente de corrigir provas objetivas.
-          </h2>
-          <p className="text-slate-300 text-lg">
-            Automatize suas correções com nossa plataforma baseada em visão computacional e foque no que realmente importa: a educação.
-          </p>
+          
+          <div className="absolute bottom-10 left-10 right-10">
+            <p className="text-sm text-slate-400 font-medium italic">
+              "A ferramenta que precisávamos para modernizar nossas correções."
+            </p>
+          </div>
         </div>
       </div>
 
@@ -37,7 +38,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
               C
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">CheckPro AI</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">SuaProva AI</h1>
           </div>
           {children}
         </div>
