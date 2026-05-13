@@ -122,14 +122,8 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
             </div>
           </div>
 
-          {/* Grade de Respostas Compacta */}
-          <div className="flex gap-4 flex-1">
-            {/* Escadinha lateral expandida para 35 linhas */}
-            <div className="flex flex-col gap-[1.5mm] pt-6">
-              {Array.from({ length: 35 }).map((_, i) => (
-                <div key={i} className={`w-3 h-1.5 bg-black ${i % 2 === 0 ? 'opacity-100' : 'opacity-20'}`}></div>
-              ))}
-            </div>
+          {/* Grade de Respostas Compacta - margem esquerda para liberar marcadores OMR */}
+          <div className="flex gap-4 flex-1 pl-[10mm]">
 
             <div className="flex-1 grid grid-cols-3 gap-x-6">
               {Array.from({ length: 3 }).map((_, colIdx) => {
