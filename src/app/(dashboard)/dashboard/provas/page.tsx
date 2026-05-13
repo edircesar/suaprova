@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Plus, Search } from 'lucide-react'
+import { FileText, Plus, Search, Printer } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
@@ -111,14 +111,18 @@ export default async function ProvasPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
                           <Link 
+                            href={`/dashboard/provas/${gabarito.id}/folha`}
+                            className="text-emerald-600 dark:text-emerald-400 hover:underline text-sm font-bold flex items-center gap-1"
+                          >
+                            <Printer size={14} />
+                            Folha
+                          </Link>
+                          <Link 
                             href={`/dashboard/provas/${gabarito.id}/relatorio`}
                             className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm font-bold"
                           >
                             Relatório
                           </Link>
-                          <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-medium">
-                            Editar
-                          </button>
                         </div>
                       </td>
                     </tr>

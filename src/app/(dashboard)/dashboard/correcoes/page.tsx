@@ -2,9 +2,9 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { UploadCloud, X, CheckCircle, Loader2, AlertCircle, Sparkles } from 'lucide-react'
+import { UploadCloud, X, CheckCircle, Loader2, AlertCircle, FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { processarProvaComIA, saveCorrecao } from './actions'
+import { processarProvaOMR, saveCorrecao } from './actions'
 
 export default function CorrecoesPage() {
   const [files, setFiles] = useState<File[]>([])
@@ -96,12 +96,12 @@ export default function CorrecoesPage() {
         // Converter imagem para base64
         const base64 = await fileToBase64(file)
         
-        // Enviar para o servidor (Gemini Vision)
-        const resultado = await processarProvaComIA(base64, selectedGabaritoId)
+        // Enviar para o servidor (OMR Gratuito)
+        const resultado = await processarProvaOMR(base64, selectedGabaritoId)
         
         if (resultado.success) {
-          // Tentar usar nome detectado pela IA, senão usar nome do arquivo
-          const alunoNome = resultado.aluno_nome || file.name.split('.')[0].replace(/[-_]/g, ' ')
+          // No OMR local, o nome do aluno ainda não é extraído (pode ser feito via OCR depois)
+          const alunoNome = file.name.split('.')[0].replace(/[-_]/g, ' ')
 
           // Salvar no banco
           await saveCorrecao({
@@ -296,11 +296,11 @@ export default function CorrecoesPage() {
                 </select>
               </div>
 
-              {/* Info: Powered by Gemini */}
-              <div className="rounded-lg bg-indigo-50 dark:bg-indigo-900/20 p-3 border border-indigo-100 dark:border-indigo-800/30 flex items-start gap-2">
-                <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
-                <p className="text-xs text-indigo-700 dark:text-indigo-300">
-                  Correção automática com <strong>IA Gemini</strong>. A IA analisa as marcações dos alunos e compara com o gabarito oficial.
+              {/* Info: Motor OMR */}
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-3 border border-emerald-100 dark:border-emerald-800/30 flex items-start gap-2">
+                <FileText className="h-4 w-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                  Correção via <strong>Leitura Óptica (OMR)</strong>. O sistema identifica as bolinhas preenchidas na folha de respostas oficial.
                 </p>
               </div>
 
@@ -331,12 +331,12 @@ export default function CorrecoesPage() {
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analisando prova {processingIndex + 1} de {files.length}...
+                    Processando prova {processingIndex + 1} de {files.length}...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Iniciar Correção com IA
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Iniciar Correção Automática
                   </>
                 )}
               </button>

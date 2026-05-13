@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { revalidatePath } from 'next/cache'
+import { OMRProcessor } from '@/lib/omr/processor'
 
 export async function saveCorrecao(data: {
   gabarito_id: string;
@@ -43,7 +44,72 @@ export async function saveCorrecao(data: {
 }
 
 /**
- * Processar imagem de prova usando Google Gemini Vision
+ * Processar imagem de prova usando OMR (Optical Mark Recognition) - GRATUITO
+ */
+export async function processarProvaOMR(imageBase64: string, gabaritoId: string) {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  
+  if (!session) throw new Error('Não autorizado')
+
+  // 1. Buscar o gabarito
+  const { data: gabarito } = await supabase
+    .from('gabaritos')
+    .select('*')
+    .eq('id', gabaritoId)
+    .single()
+
+  if (!gabarito) throw new Error('Gabarito não encontrado.')
+
+  try {
+    // 2. Preparar buffer da imagem
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '')
+    const buffer = Buffer.from(base64Data, 'base64')
+
+    // 3. Processar com OMR (Sharp)
+    const processor = new OMRProcessor()
+    const detection = await processor.process(buffer, gabarito.questoes_qtd)
+
+    // 4. Comparar com gabarito oficial
+    let acertos = 0
+    const respostasDetectadas: Record<string, string> = {}
+    const detalhes: Record<string, any> = {}
+
+    for (const res of detection) {
+      const qNum = res.question.toString()
+      const correta = gabarito.respostas[qNum]
+      const isCorrect = res.answer === correta
+      
+      if (isCorrect) acertos++
+      
+      respostasDetectadas[qNum] = res.answer || ''
+      detalhes[qNum] = {
+        resposta_aluno: res.answer,
+        resposta_correta: correta,
+        correto: isCorrect,
+        confidence: res.confidence
+      }
+    }
+
+    const valorPorQuestao = (gabarito.valor_total || 10.0) / gabarito.questoes_qtd
+    const nota = acertos * valorPorQuestao
+
+    return {
+      success: true,
+      acertos,
+      total_questoes: gabarito.questoes_qtd,
+      nota: parseFloat(nota.toFixed(2)),
+      respostas_aluno: respostasDetectadas,
+      detalhes
+    }
+  } catch (err: any) {
+    console.error('Erro OMR:', err)
+    throw new Error('Falha no processamento de imagem. Verifique a qualidade da foto.')
+  }
+}
+
+/**
+ * Processar imagem de prova usando Google Gemini Vision (BACKUP / INTELIGÊNCIA)
  * Recebe a imagem em base64 e o gabarito_id, retorna as respostas detectadas
  */
 export async function processarProvaComIA(imageBase64: string, gabaritoId: string) {
