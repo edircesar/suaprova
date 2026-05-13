@@ -124,7 +124,7 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
           {/* Grade de Respostas Compacta */}
           <div className="flex gap-4 flex-1">
             {/* Escadinha lateral */}
-            <div className="flex flex-col gap-[1.8mm] pt-6">
+            <div className="flex flex-col gap-[1.5mm] pt-6">
               {Array.from({ length: 30 }).map((_, i) => (
                 <div key={i} className={`w-3 h-1.5 bg-black ${i % 2 === 0 ? 'opacity-100' : 'opacity-20'}`}></div>
               ))}
@@ -133,10 +133,10 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
             <div className="flex-1 grid grid-cols-3 gap-x-6">
               {Array.from({ length: 3 }).map((_, colIdx) => (
                 <div key={colIdx} className="space-y-0 flex flex-col">
-                  <div className="flex items-center h-[7mm] border-b-2 border-black mb-0.5">
+                  <div className="flex items-center h-[6.5mm] border-b-2 border-black mb-0.5">
                     <div className="w-3 h-1.5 bg-black mr-2"></div>
-                    <div className="flex-1 flex justify-around text-[9px] font-black">
-                      {['A', 'B', 'C', 'D', 'E'].map(a => <div key={a} className="w-4 text-center">{a}</div>)}
+                    <div className="flex-1 flex justify-around text-[8.5px] font-black">
+                      {['A', 'B', 'C', 'D', 'E'].map(a => <div key={a} className="w-3.5 text-center">{a}</div>)}
                     </div>
                   </div>
 
@@ -145,15 +145,15 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
                     if (qNum > gabarito.questoes_qtd) return null
 
                     return (
-                      <div key={qNum} className="flex items-center h-[6.3mm] border-b border-slate-100">
-                        <div className="w-5 mr-1 text-[10px] font-black text-slate-800">
+                      <div key={qNum} className="flex items-center h-[5.8mm] border-b border-slate-50">
+                        <div className="w-4 mr-1 text-[9px] font-black text-slate-800">
                           {qNum.toString().padStart(2, '0')}
                         </div>
                         <div className="flex-1 flex justify-around">
                           {['A', 'B', 'C', 'D', 'E'].map(alt => (
                             <div 
                               key={alt} 
-                              className="w-[4.4mm] h-[4.4mm] rounded-full border-[1.2px] border-black flex items-center justify-center text-[7px] font-bold"
+                              className="w-[4.0mm] h-[4.0mm] rounded-full border-[1.2px] border-black flex items-center justify-center text-[6.5px] font-bold"
                             >
                               {alt}
                             </div>
