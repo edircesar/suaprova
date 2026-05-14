@@ -27,7 +27,7 @@ export default async function FinanceiroPage() {
       credits: 50,
       price: 'R$ 29,90',
       description: 'Ideal para professores individuais.',
-      features: ['50 créditos de correção', 'Correção Express ilimitada', 'Suporte via email'],
+      features: ['50 créditos de correção', 'Suporte via email'],
       popular: false
     },
     {
@@ -35,7 +35,7 @@ export default async function FinanceiroPage() {
       credits: 200,
       price: 'R$ 89,90',
       description: 'Melhor custo-benefício para turmas grandes.',
-      features: ['200 créditos de correção', 'Correção Express ilimitada', 'Relatórios em PDF', 'Suporte prioritário'],
+      features: ['200 créditos de correção', 'Relatórios em PDF', 'Suporte prioritário'],
       popular: true
     },
     {
@@ -85,7 +85,7 @@ export default async function FinanceiroPage() {
                 <Zap size={14} />
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                <strong>Modo Express:</strong> Totalmente gratuito e ilimitado. Não consome créditos.
+                <strong>Modo Expresso:</strong> Consome 1 crédito por folha corrigida. Usa o modelo de gabarito oficial do nosso sistema.
               </p>
             </div>
             <div className="flex items-start gap-3">
@@ -93,7 +93,7 @@ export default async function FinanceiroPage() {
                 <Sparkles size={14} />
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                <strong>Modo Premium IA:</strong> Consome 1 crédito por folha corrigida. Ideal para fotos de celular ou provas personalizadas.
+                <strong>Modo Premium:</strong> Usa IA avançada para correções, consumindo 1 crédito por folha. Ideal para fotos de celular com baixa qualidade, rasuradas ou provas personalizadas.
               </p>
             </div>
           </CardContent>
