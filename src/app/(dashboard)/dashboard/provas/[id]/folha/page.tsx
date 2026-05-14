@@ -56,10 +56,10 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
       <div className="w-[210mm] h-[297mm] bg-white shadow-2xl print:shadow-none relative box-border overflow-hidden font-sans text-black border print:border-0 print-container">
         
         {/* MARCADORES DE CANTO - Posicionamento fixo de 8mm */}
-        <div className="absolute top-[8mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-tl"></div>
-        <div className="absolute top-[8mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-tr"></div>
-        <div className="absolute bottom-[15mm] left-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-bl"></div>
-        <div className="absolute bottom-[15mm] right-[8mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-br"></div>
+        <div className="absolute top-[5mm] left-[5mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-tl"></div>
+        <div className="absolute top-[5mm] right-[5mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-tr"></div>
+        <div className="absolute bottom-[10mm] left-[5mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-bl"></div>
+        <div className="absolute bottom-[10mm] right-[5mm] w-[7mm] h-[7mm] bg-black border-[1px] border-black" id="marker-br"></div>
 
         {/* MARCADOR LATERAL MÉDIO - REMOVIDO para evitar sobreposição */}
 
@@ -71,7 +71,7 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
           <div className="flex justify-between items-end mb-2">
             <div className="text-xl font-black uppercase tracking-tighter italic text-slate-400">SuaProva AI</div>
             <div className="text-right">
-              <span className="text-[8px] font-bold block leading-none">GABARITO OFICIAL</span>
+              <span className="text-[8px] font-bold block leading-none">FOLHA DE RESPOSTAS V2</span>
               <span className="text-[7px] font-mono opacity-50">{gabarito.id.slice(0,18).toUpperCase()}</span>
             </div>
           </div>
