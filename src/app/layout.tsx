@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({
         <div className="flex-1 overflow-auto flex flex-col">
           {children}
         </div>
+        <Toaster position="top-right" richColors />
         <footer className="py-3 text-center text-xs font-medium text-slate-500 bg-white dark:bg-slate-950 border-t shrink-0 z-50 print:hidden">
           by projeto7 - versão 1.0
         </footer>

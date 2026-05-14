@@ -4,6 +4,7 @@ import { FileText, Plus, Search, Printer } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { GabaritoActions } from './gabarito-actions'
 
 export default async function ProvasPage() {
   const supabase = await createClient()
@@ -109,21 +110,7 @@ export default async function ProvasPage() {
                         {new Date(gabarito.created_at).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <Link 
-                            href={`/dashboard/provas/${gabarito.id}/folha`}
-                            className="text-emerald-600 dark:text-emerald-400 hover:underline text-sm font-bold flex items-center gap-1"
-                          >
-                            <Printer size={14} />
-                            Folha
-                          </Link>
-                          <Link 
-                            href={`/dashboard/provas/${gabarito.id}/relatorio`}
-                            className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm font-bold"
-                          >
-                            Relatório
-                          </Link>
-                        </div>
+                        <GabaritoActions gabarito={gabarito} />
                       </td>
                     </tr>
                   ))}

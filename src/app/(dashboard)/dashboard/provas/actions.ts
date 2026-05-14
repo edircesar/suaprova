@@ -45,3 +45,55 @@ export async function createGabarito(formData: FormData) {
   revalidatePath('/dashboard/correcoes')
   redirect('/dashboard/provas')
 }
+
+export async function deleteGabarito(id: string) {
+  const supabase = await createClient()
+  
+  const { data: { session } } = await supabase.auth.getSession()
+  
+  if (!session) {
+    throw new Error('Não autorizado')
+  }
+
+  const { error } = await supabase
+    .from('gabaritos')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', session.user.id) // Garantir que só deleta o que é seu
+
+  if (error) {
+    console.error('Erro ao deletar gabarito:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath('/dashboard/provas')
+  return { success: true }
+}
+
+export async function renameGabarito(id: string, novoNome: string) {
+  const supabase = await createClient()
+  
+  const { data: { session } } = await supabase.auth.getSession()
+  
+  if (!session) {
+    throw new Error('Não autorizado')
+  }
+
+  if (!novoNome || novoNome.trim() === '') {
+    return { error: 'O nome não pode estar vazio' }
+  }
+
+  const { error } = await supabase
+    .from('gabaritos')
+    .update({ nome: novoNome })
+    .eq('id', id)
+    .eq('user_id', session.user.id)
+
+  if (error) {
+    console.error('Erro ao renomear gabarito:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath('/dashboard/provas')
+  return { success: true }
+}
