@@ -155,9 +155,9 @@ export async function processarProvaComIA(imageBase64: string, gabaritoId: strin
     throw new Error('Gabarito não encontrado.')
   }
 
-  // 3. Enviar para o Gemini Vision
+  // 3. Enviar para o Google Gemini
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
   // Remover o prefixo data:image/...;base64, se existir
   const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '')
@@ -195,13 +195,20 @@ Analise a imagem agora:`
 
     const responseText = result.response.text()
     
-    // Limpar a resposta (remover possíveis markdown wrappers)
-    const cleanedResponse = responseText
-      .replace(/```json\n?/g, '')
-      .replace(/```\n?/g, '')
-      .trim()
+    // Limpar a resposta (remover possíveis markdown wrappers e texto extra)
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error('Gemini não retornou JSON válido:', responseText);
+      throw new Error('A IA não conseguiu formatar os dados corretamente. Tente novamente.');
+    }
 
+    const cleanedResponse = jsonMatch[0];
     const parsed = JSON.parse(cleanedResponse)
+    
+    if (!parsed.respostas) {
+      throw new Error('A IA não identificou as respostas na imagem.');
+    }
+
     const respostasAluno = parsed.respostas || {}
     const alunoNome = parsed.aluno_nome || null
 
