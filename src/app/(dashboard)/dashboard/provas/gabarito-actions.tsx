@@ -115,11 +115,11 @@ export function GabaritoActions({ gabarito }: GabaritoActionsProps) {
         </Link>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger render={
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <MoreHorizontal size={18} />
             </Button>
-          </DropdownMenuTrigger>
+          } />
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setShowRenameDialog(true)} className="cursor-pointer">
               <Pencil size={14} className="mr-2" />
