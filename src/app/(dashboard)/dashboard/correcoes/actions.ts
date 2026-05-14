@@ -104,7 +104,10 @@ export async function processarProvaOMR(imageBase64: string, gabaritoId: string)
     }
   } catch (err: any) {
     console.error('Erro OMR:', err)
-    throw new Error('Falha no processamento de imagem. Verifique a qualidade da foto.')
+    return { 
+      success: false, 
+      error: 'Falha no processamento de imagem. Verifique a qualidade da foto.' 
+    }
   }
 }
 
@@ -128,7 +131,10 @@ export async function processarProvaComIA(imageBase64: string, gabaritoId: strin
     .single()
 
   if (!profile || (profile.credits || 0) < 1) {
-    throw new Error('Créditos insuficientes para correção Premium IA. Por favor, recarregue sua conta no menu Financeiro.')
+    return { 
+      success: false, 
+      error: 'Créditos insuficientes para correção Premium IA. Por favor, recarregue sua conta no menu Financeiro.' 
+    }
   }
 
   // 2. Buscar a chave da API do Gemini nas configurações do sistema
@@ -141,7 +147,10 @@ export async function processarProvaComIA(imageBase64: string, gabaritoId: strin
   const apiKey = settings?.gemini_api_key || process.env.GEMINI_API_KEY
 
   if (!apiKey) {
-    throw new Error('Chave da API Gemini não configurada. Peça ao administrador para configurá-la em Admin > Configurações.')
+    return { 
+      success: false, 
+      error: 'Chave da API Gemini não configurada. Peça ao administrador para configurá-la em Admin > Configurações.' 
+    }
   }
 
   // 3. Buscar o gabarito
@@ -253,13 +262,14 @@ Analise a imagem agora:`
   } catch (err: any) {
     console.error('Erro ao processar com Gemini:', err)
     
+    let errorMsg = `Erro na análise: ${err.message}`
     if (err.message?.includes('API key')) {
-      throw new Error('Chave da API Gemini inválida. Verifique em Admin > Configurações.')
+      errorMsg = 'Chave da API Gemini inválida. Verifique em Admin > Configurações.'
     }
     if (err.message?.includes('JSON')) {
-      throw new Error('A IA não conseguiu ler a folha de respostas claramente. Tente enviar uma foto com melhor qualidade.')
+      errorMsg = 'A IA não conseguiu ler a folha de respostas claramente. Tente enviar uma foto com melhor qualidade.'
     }
     
-    throw new Error(`Erro na análise: ${err.message}`)
+    return { success: false, error: errorMsg }
   }
 }

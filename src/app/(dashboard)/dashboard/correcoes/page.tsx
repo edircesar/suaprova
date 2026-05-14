@@ -158,6 +158,9 @@ export default function CorrecoesPage() {
             nota: resultado.nota.toFixed(1),
             detalhes: resultado.detalhes
           })
+        } else {
+          // Se a ação retornou erro mas não lançou exceção
+          throw new Error(resultado.error || 'Erro desconhecido no processamento.')
         }
       }
 
