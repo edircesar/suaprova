@@ -137,26 +137,26 @@ export default function CorrecoesPage() {
         }
         
         if (resultado.success) {
-          // Acessar aluno_nome de forma segura (existe no Premium IA, não no Express)
+          // Acessar propriedades de forma segura (as ações retornam tipos diferentes em caso de erro)
           const res = resultado as any
           const alunoNome = res.aluno_nome || file.name.split('.')[0].replace(/[-_]/g, ' ')
 
           await saveCorrecao({
             gabarito_id: selectedGabaritoId,
             aluno_nome: alunoNome,
-            acertos: resultado.acertos,
-            total_questoes: resultado.total_questoes,
-            nota: resultado.nota,
-            respostas_aluno: resultado.respostas_aluno
+            acertos: res.acertos,
+            total_questoes: res.total_questoes,
+            nota: res.nota,
+            respostas_aluno: res.respostas_aluno
           })
 
           processingResults.push({
             fileName: file.name,
             alunoNome,
-            acertos: resultado.acertos,
-            total: resultado.total_questoes,
-            nota: resultado.nota.toFixed(1),
-            detalhes: resultado.detalhes
+            acertos: res.acertos,
+            total: res.total_questoes,
+            nota: res.nota.toFixed(1),
+            detalhes: res.detalhes
           })
         } else {
           // Se a ação retornou erro mas não lançou exceção
