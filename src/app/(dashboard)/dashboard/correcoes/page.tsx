@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { UploadCloud, X, CheckCircle, Loader2, AlertCircle, FileText, Sparkles, Zap } from 'lucide-react'
+import { UploadCloud, X, CheckCircle, Loader2, AlertCircle, FileText, Sparkles, Zap, History, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { processarProvaOMR, processarProvaComIA, saveCorrecao } from './actions'
 
@@ -20,6 +20,7 @@ export default function CorrecoesPage() {
   const [gabaritos, setGabaritos] = useState<any[]>([])
   const [selectedGabaritoId, setSelectedGabaritoId] = useState('')
   const [results, setResults] = useState<any[]>([])
+  const [history, setHistory] = useState<any[]>([])
   
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
@@ -30,8 +31,38 @@ export default function CorrecoesPage() {
       const { data } = await supabase.from('gabaritos').select('*').order('created_at', { ascending: false })
       if (data) setGabaritos(data)
     }
+    
+    async function fetchHistory() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+
+      const { data } = await supabase
+        .from('correcoes')
+        .select('*, gabaritos(nome)')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(5)
+      
+      if (data) setHistory(data)
+    }
+
     fetchGabaritos()
+    fetchHistory()
   }, [])
+
+  const fetchHistory = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { data } = await supabase
+      .from('correcoes')
+      .select('*, gabaritos(nome)')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+      .limit(5)
+    
+    if (data) setHistory(data)
+  }
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -133,6 +164,7 @@ export default function CorrecoesPage() {
       setResults(processingResults)
       setSuccess(true)
       setFiles([])
+      fetchHistory() // Atualizar histórico após sucesso
     } catch (err: any) {
       console.error(err)
       setError(err.message || 'Erro ao processar as imagens.')
@@ -411,6 +443,53 @@ export default function CorrecoesPage() {
                 )}
               </button>
             </CardFooter>
+          </Card>
+
+          {/* Histórico Lateral */}
+          <Card className="border-slate-200 dark:border-slate-800">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <History size={18} className="text-indigo-600" />
+                <CardTitle className="text-lg">Últimas Correções</CardTitle>
+              </div>
+              <CardDescription>Histórico recente (últimas 5)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {history.length === 0 ? (
+                <div className="text-center py-6 text-slate-500 italic text-sm">
+                  Nenhuma correção recente.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {history.map((item) => (
+                    <div key={item.id} className="group relative flex flex-col gap-1 p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-indigo-600 truncate max-w-[120px]">
+                          {item.gabaritos?.nome}
+                        </span>
+                        <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                          <Clock size={10} />
+                          {new Date(item.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                        {item.aluno_nome}
+                      </p>
+                      <div className="flex items-center justify-between mt-1">
+                        <div className="flex gap-1">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 border text-slate-500">
+                            {item.acertos}/{item.total_questoes} acertos
+                          </span>
+                        </div>
+                        <span className={`text-sm font-black ${item.nota >= 6 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {item.nota.toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
           </Card>
         </div>
       </div>
