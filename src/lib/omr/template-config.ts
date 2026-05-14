@@ -38,12 +38,11 @@ export const BUBBLE_SPACING_X_PERCENT = 4.5 // espaço entre bolinhas (A, B, C, 
  * Calcula a configuração da grade para uma quantidade de questões
  */
 export function getTemplateConfig(questoesQtd: number): TemplateConfig {
-  // Sempre usar 3 colunas para manter legibilidade
+  // Sempre usar 3 colunas para manter legibilidade (até 105 questões: 3x35)
   let colunas = 3
 
-  // Se tiver muitas questões, verificar se cabe em 3 colunas (max ~30 por coluna)
-  const questoesPorCol3 = Math.ceil(questoesQtd / 3)
-  if (questoesPorCol3 > 30) {
+  // Se tiver mais de 105 questões, precisamos de mais colunas (raro)
+  if (questoesQtd > 105) {
     colunas = 4
   }
 

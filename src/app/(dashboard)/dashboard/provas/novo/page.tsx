@@ -194,13 +194,16 @@ export default function NovoGabaritoPage() {
                   }}
                   className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-800 dark:bg-slate-950"
                 >
-                  <option value={5}>5 Questões</option>
                   <option value={10}>10 Questões</option>
-                  <option value={15}>15 Questões</option>
                   <option value={20}>20 Questões</option>
                   <option value={30}>30 Questões</option>
+                  <option value={40}>40 Questões</option>
                   <option value={50}>50 Questões</option>
+                  <option value={60}>60 Questões</option>
+                  <option value={70}>70 Questões</option>
+                  <option value={80}>80 Questões</option>
                   <option value={90}>90 Questões</option>
+                  <option value={100}>100 Questões</option>
                 </select>
               </div>
 
