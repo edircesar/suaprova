@@ -137,11 +137,10 @@ export default function CorrecoesPage() {
         }
         
         if (resultado.success) {
-          // Acessar propriedades de forma segura (as ações retornam tipos diferentes em caso de erro)
           const res = resultado as any
           const alunoNome = res.aluno_nome || file.name.split('.')[0].replace(/[-_]/g, ' ')
 
-          await saveCorrecao({
+          const saveResult = await saveCorrecao({
             gabarito_id: selectedGabaritoId,
             aluno_nome: alunoNome,
             acertos: res.acertos,
@@ -149,6 +148,10 @@ export default function CorrecoesPage() {
             nota: res.nota,
             respostas_aluno: res.respostas_aluno
           })
+
+          if (!saveResult.success) {
+            throw new Error(saveResult.error || 'Erro ao salvar os resultados no banco de dados.')
+          }
 
           processingResults.push({
             fileName: file.name,
@@ -159,8 +162,7 @@ export default function CorrecoesPage() {
             detalhes: res.detalhes
           })
         } else {
-          // Se a ação retornou erro mas não lançou exceção
-          throw new Error(resultado.error || 'Erro desconhecido no processamento.')
+          throw new Error(resultado.error || 'Erro desconhecido no processamento de IA.')
         }
       }
 
