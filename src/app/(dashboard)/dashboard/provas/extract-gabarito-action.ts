@@ -7,8 +7,7 @@ import { OMRProcessor } from '@/lib/omr/processor'
  * Usa OMR (processamento local) - sem IA, sem custo de créditos.
  */
 export async function extractGabaritoFromImage(
-  imageBase64: string,
-  questoesQtd: number
+  formData: FormData
 ): Promise<{
   success: boolean
   respostas?: Record<number, string>
@@ -16,9 +15,16 @@ export async function extractGabaritoFromImage(
   error?: string
 }> {
   try {
-    // 1. Converter base64 para buffer
-    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '')
-    const buffer = Buffer.from(base64Data, 'base64')
+    const file = formData.get('image') as File
+    const questoesQtd = parseInt(formData.get('questoesQtd') as string)
+
+    if (!file) {
+      throw new Error('Nenhuma imagem enviada.')
+    }
+
+    // 1. Converter File para buffer
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
 
     // 2. Processar com OMR
     const processor = new OMRProcessor()

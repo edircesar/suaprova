@@ -87,23 +87,17 @@ export default function NovoGabaritoPage() {
     setRespostas({}) // Reset answers when a new file is uploaded
   }
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = reject
-      reader.readAsDataURL(file)
-    })
-  }
-
   const executeExtraction = async () => {
     if (!file) return
     setIsExtracting(true)
     setError(null)
     
     try {
-      const base64 = await fileToBase64(file)
-      const result = await extractGabaritoFromImage(base64, questoesQtd)
+      const formData = new FormData()
+      formData.append('image', file)
+      formData.append('questoesQtd', questoesQtd.toString())
+      
+      const result = await extractGabaritoFromImage(formData)
       
       if (!result.success) {
         throw new Error(result.error || 'Erro ao processar imagem')
