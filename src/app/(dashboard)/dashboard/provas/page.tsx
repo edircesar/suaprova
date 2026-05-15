@@ -95,7 +95,12 @@ export default async function ProvasPage() {
                           <div className="w-8 h-8 rounded bg-indigo-50 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                             <FileText size={16} />
                           </div>
-                          {gabarito.nome}
+                          <Link 
+                            href={`/dashboard/provas/${gabarito.id}/editar`}
+                            className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                          >
+                            {gabarito.nome}
+                          </Link>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center">
