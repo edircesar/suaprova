@@ -8,7 +8,8 @@ import {
   Trash2, 
   Printer, 
   FileText,
-  Loader2
+  Loader2,
+  Eye
 } from 'lucide-react'
 import { 
   DropdownMenu, 
@@ -113,6 +114,13 @@ export function GabaritoActions({ gabarito }: GabaritoActionsProps) {
         >
           <FileText size={18} />
         </Link>
+        <Link 
+          href={`/dashboard/provas/${gabarito.id}/editar`}
+          className="text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 p-1.5 rounded-md transition-colors"
+          title="Editar Gabarito"
+        >
+          <Pencil size={18} />
+        </Link>
 
         <DropdownMenu>
           <DropdownMenuTrigger render={
@@ -125,6 +133,15 @@ export function GabaritoActions({ gabarito }: GabaritoActionsProps) {
               <Pencil size={14} className="mr-2" />
               Renomear
             </DropdownMenuItem>
+            <DropdownMenuItem 
+              render={
+                <Link href={`/dashboard/provas/${gabarito.id}/editar`}>
+                  <Eye size={14} className="mr-2" />
+                  Ver/Editar Respostas
+                </Link>
+              } 
+              className="cursor-pointer" 
+            />
             <DropdownMenuSeparator />
             <DropdownMenuItem 
               onClick={() => setShowDeleteDialog(true)} 
