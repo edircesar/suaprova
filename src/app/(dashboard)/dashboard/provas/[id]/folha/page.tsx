@@ -1,6 +1,5 @@
 import React from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { getTemplateConfig, getBubblePositions } from '@/lib/omr/template-config'
 import PrintSheetButton from './PrintSheetButton'
 import { notFound } from 'next/navigation'
 
@@ -15,8 +14,6 @@ export default async function FolhaRespostasPage({ params }: { params: Promise<{
     .single()
 
   if (!gabarito) notFound()
-
-  const config = getTemplateConfig(gabarito.questoes_qtd)
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8 print:p-0 print:bg-white flex flex-col items-center">

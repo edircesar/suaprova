@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { FileText, ArrowLeft, Save, Loader2, UploadCloud, Wand2, X } from 'lucide-react'
 import Link from 'next/link'
 import { createGabarito } from '../actions'
+import { extractGabaritoFromImage } from '../extract-gabarito-action'
 
 export default function NovoGabaritoPage() {
   const [questoesQtd, setQuestoesQtd] = useState(10)
@@ -86,26 +87,38 @@ export default function NovoGabaritoPage() {
     setRespostas({}) // Reset answers when a new file is uploaded
   }
 
-  const simulateExtraction = async () => {
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const executeExtraction = async () => {
     if (!file) return
     setIsExtracting(true)
+    setError(null)
     
-    // Simular o tempo de processamento do OCR
-    await new Promise(resolve => setTimeout(resolve, 2500))
-    
-    // Preencher aleatoriamente para simular a IA lendo as alternativas
-    const alternativas = ['A', 'B', 'C', 'D', 'E']
-    const respostasLidas: Record<number, string> = {}
-    
-    for (let i = 1; i <= questoesQtd; i++) {
-      // Simulação simples com viés para A e B para parecer real
-      const randomAlt = alternativas[Math.floor(Math.random() * alternativas.length)]
-      respostasLidas[i] = randomAlt
+    try {
+      const base64 = await fileToBase64(file)
+      const result = await extractGabaritoFromImage(base64, questoesQtd)
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao processar imagem')
+      }
+      
+      if (result.respostas) {
+        setRespostas(result.respostas)
+      }
+      setExtractionDone(true)
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message || 'Falha na leitura da imagem. Certifique-se de que os 4 cantos estão visíveis.')
+    } finally {
+      setIsExtracting(false)
     }
-    
-    setRespostas(respostasLidas)
-    setIsExtracting(false)
-    setExtractionDone(true)
   }
 
   const alternativas = ['A', 'B', 'C', 'D', 'E']
@@ -289,14 +302,14 @@ export default function NovoGabaritoPage() {
                     {!extractionDone ? (
                       <button
                         type="button"
-                        onClick={simulateExtraction}
+                        onClick={executeExtraction}
                         disabled={isExtracting}
                         className="inline-flex w-full sm:w-auto items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50 bg-indigo-600 text-white hover:bg-indigo-700 h-12 px-6 shadow-md"
                       >
                         {isExtracting ? (
                           <>
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Analisando imagem com IA...
+                            Analisando imagem...
                           </>
                         ) : (
                           <>
