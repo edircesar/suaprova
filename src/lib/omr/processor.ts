@@ -83,7 +83,7 @@ export class OMRProcessor {
         const pixelPos = this.relativeToPixel(markers, rel.u, rel.v)
 
         // Calcular a escuridão média na região da bolinha
-        const darkness = this.sampleCircle(data, width, height, pixelPos.x, pixelPos.y, bubbleRadiusPx)
+        const darkness = this.sampleBubbleDarkness(data, width, height, pixelPos.x, pixelPos.y, bubbleRadiusPx)
         altDarkness[alt] = Math.round(darkness)
       }
 
@@ -261,39 +261,54 @@ export class OMRProcessor {
   }
 
   /**
-   * Amostra a escuridão média num círculo (bolinha).
-   * Retorna 0-255, onde 0 = branco puro e 255 = preto puro.
+   * Amostra a escuridão da região da bolinha.
+   * Para ser resiliente a pequenos erros de alinhamento físico (1-3mm), 
+   * procuramos em uma janela maior e tiramos a média apenas dos pixels mais escuros
+   * correspondentes à área esperada de uma bolinha preenchida.
    */
-  private sampleCircle(
+  private sampleBubbleDarkness(
     data: Buffer, 
     width: number,
     height: number,
     centerX: number, 
     centerY: number, 
-    radius: number
+    bubbleRadiusPx: number
   ): number {
-    let totalDarkness = 0
-    let count = 0
+    // Procurar numa janela de 2x o raio da bolinha (cobre erros de alinhamento)
+    const searchRadius = Math.floor(bubbleRadiusPx * 2.5)
+    const x0 = Math.max(0, centerX - searchRadius)
+    const x1 = Math.min(width - 1, centerX + searchRadius)
+    const y0 = Math.max(0, centerY - searchRadius)
+    const y1 = Math.min(height - 1, centerY + searchRadius)
 
-    const x0 = Math.max(0, centerX - radius)
-    const x1 = Math.min(width - 1, centerX + radius)
-    const y0 = Math.max(0, centerY - radius)
-    const y1 = Math.min(height - 1, centerY + radius)
+    const darknessValues: number[] = []
 
     for (let y = y0; y <= y1; y++) {
       for (let x = x0; x <= x1; x++) {
-        const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2)
-        if (dist <= radius) {
-          const idx = y * width + x
-          if (idx >= 0 && idx < data.length) {
-            // Inverter: 255 (branco) → 0, 0 (preto) → 255
-            totalDarkness += (255 - data[idx])
-            count++
-          }
+        const idx = y * width + x
+        if (idx >= 0 && idx < data.length) {
+          // Inverter: 255 (branco) → 0, 0 (preto) → 255
+          darknessValues.push(255 - data[idx])
         }
       }
     }
 
-    return count > 0 ? totalDarkness / count : 0
+    if (darknessValues.length === 0) return 0
+
+    // Ordenar do mais escuro (maior valor) para o mais claro
+    darknessValues.sort((a, b) => b - a)
+
+    // A área de uma bolinha é pi * r^2.
+    // Vamos pegar os N pixels mais escuros, onde N é metade da área esperada da bolinha.
+    // Se a bolinha estiver preenchida, esses N pixels serão quase totalmente pretos.
+    // Se estiver vazia, esses N pixels vão incluir a borda fina e muito papel branco.
+    const expectedBubbleArea = Math.PI * Math.pow(bubbleRadiusPx, 2)
+    const numPixelsToSample = Math.max(5, Math.floor(expectedBubbleArea * 0.6))
+    
+    // Pegar apenas o top N pixels mais escuros
+    const topDarkPixels = darknessValues.slice(0, numPixelsToSample)
+    
+    const totalDarkness = topDarkPixels.reduce((sum, val) => sum + val, 0)
+    return totalDarkness / topDarkPixels.length
   }
 }
