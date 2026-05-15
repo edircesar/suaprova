@@ -97,7 +97,7 @@ export default async function ProvasPage() {
                           </div>
                           <Link 
                             href={`/dashboard/provas/${gabarito.id}/editar`}
-                            className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                            className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline transition-all"
                           >
                             {gabarito.nome}
                           </Link>
