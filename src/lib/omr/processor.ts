@@ -34,8 +34,14 @@ export class OMRProcessor {
    * Funciona para gabarito oficial E prova de aluno.
    */
   async process(imageBuffer: Buffer, questoesQtd: number): Promise<OMRResult[]> {
+    // Configurar sharp para economizar memória (evitar erro 503 / OOM no Hostinger)
+    sharp.cache(false)
+    sharp.concurrency(1)
+
     // 1. Pré-processar: converter para grayscale e obter dados raw
+    // O resize para 1200px evita que fotos de 12MP-50MP estourem a memória RAM
     const processedImage = await sharp(imageBuffer)
+      .resize({ width: 1200, withoutEnlargement: true })
       .grayscale()
       .normalize()
       .raw()
