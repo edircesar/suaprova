@@ -314,26 +314,21 @@ export class OMRProcessor {
 
     for (let y = y0; y <= y1; y++) {
       for (let x = x0; x <= x1; x++) {
-        const idx = y * width + x
-        if (idx >= 0 && idx < data.length) {
-          // Inverter: 255 (branco) → 0, 0 (preto) → 255
-          darknessValues.push(255 - data[idx])
+        // Apenas pixels dentro do círculo
+        const distSq = Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)
+        if (distSq <= Math.pow(searchRadius, 2)) {
+          const idx = y * width + x
+          if (idx >= 0 && idx < data.length) {
+            // Inverter: 255 (branco) → 0, 0 (preto) → 255
+            darknessValues.push(255 - data[idx])
+          }
         }
       }
     }
 
     if (darknessValues.length === 0) return 0
-
-    // Ordenar do mais escuro (maior valor) para o mais claro
-    darknessValues.sort((a, b) => b - a)
-
-    const expectedBubbleArea = Math.PI * Math.pow(bubbleRadiusPx, 2)
-    const numPixelsToSample = Math.max(5, Math.floor(expectedBubbleArea * 0.6))
     
-    // Pegar apenas o top N pixels mais escuros
-    const topDarkPixels = darknessValues.slice(0, numPixelsToSample)
-    
-    const totalDarkness = topDarkPixels.reduce((sum, val) => sum + val, 0)
-    return totalDarkness / topDarkPixels.length
+    const totalDarkness = darknessValues.reduce((sum, val) => sum + val, 0)
+    return totalDarkness / darknessValues.length
   }
 }
