@@ -76,8 +76,8 @@ export class OMRProcessor {
     let bestScore = -1
     let gridOffset = { dx: 0, dy: 0 }
 
-    for (let dy = -25; dy <= 25; dy += 4) {
-      for (let dx = -8; dx <= 8; dx += 3) {
+    for (let dy = -100; dy <= 100; dy += 5) {
+      for (let dx = -15; dx <= 15; dx += 3) {
         let score = 0
         for (let q = 1; q <= searchQuestions; q++) {
           let maxDarkness = 0
