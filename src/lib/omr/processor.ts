@@ -70,6 +70,38 @@ export class OMRProcessor {
     const mmPerPixel = MARKER_SIZE_MM / markerPixelSize
     const bubbleRadiusPx = Math.max(3, Math.floor((BUBBLE_DIAMETER_MM / 2) / mmPerPixel * 0.7))
 
+    // 4. Alinhamento Dinâmico da Grade (Grid Search)
+    // Encontrar o offset exato em pixels para corrigir distorções de escala ou margens do HTML
+    const searchQuestions = Math.min(15, questoesQtd)
+    let bestScore = -1
+    let gridOffset = { dx: 0, dy: 0 }
+
+    for (let dy = -25; dy <= 25; dy += 4) {
+      for (let dx = -8; dx <= 8; dx += 3) {
+        let score = 0
+        for (let q = 1; q <= searchQuestions; q++) {
+          let maxDarkness = 0
+          for (const alt of ALTERNATIVAS) {
+            const mmPos = bubblesMM[q][alt]
+            const rel = mmToMarkerRelative(mmPos.x, mmPos.y)
+            const pixelPos = this.relativeToPixel(markers, rel.u, rel.v)
+            
+            // Busca estrita apenas para alinhamento
+            const darkness = this.sampleBubbleDarkness(data, width, height, pixelPos.x + dx, pixelPos.y + dy, bubbleRadiusPx, true)
+            if (darkness > maxDarkness) maxDarkness = darkness
+          }
+          score += maxDarkness
+        }
+        if (score > bestScore) {
+          bestScore = score
+          gridOffset = { dx, dy }
+        }
+      }
+    }
+
+    console.log(`Grid Offset Encontrado: dx=${gridOffset.dx}, dy=${gridOffset.dy} | Score: ${bestScore}`)
+
+    // 5. Para cada questão, amostrar cada bolinha com o offset corrigido
     for (let q = 1; q <= questoesQtd; q++) {
       const altDarkness: Record<string, number> = {}
       let selectedAlt: string | null = null
@@ -77,33 +109,27 @@ export class OMRProcessor {
 
       for (const alt of ALTERNATIVAS) {
         const mmPos = bubblesMM[q][alt]
-        // Converter mm → posição relativa entre marcadores
         const rel = mmToMarkerRelative(mmPos.x, mmPos.y)
-        // Converter posição relativa → pixels usando interpolação bilinear
         const pixelPos = this.relativeToPixel(markers, rel.u, rel.v)
 
-        // Calcular a escuridão média na região da bolinha
-        const darkness = this.sampleBubbleDarkness(data, width, height, pixelPos.x, pixelPos.y, bubbleRadiusPx)
+        // Calcular a escuridão média na região da bolinha + offset da grade
+        const darkness = this.sampleBubbleDarkness(data, width, height, pixelPos.x + gridOffset.dx, pixelPos.y + gridOffset.dy, bubbleRadiusPx, false)
         altDarkness[alt] = Math.round(darkness)
       }
 
       // Determinar a alternativa marcada
-      // Estratégia: encontrar a mais escura e verificar se está acima do threshold
       const sorted = Object.entries(altDarkness).sort((a, b) => b[1] - a[1])
       const darkest = sorted[0]
       const secondDarkest = sorted[1]
 
-      // Threshold dinâmico: a bolinha marcada deve ter pelo menos 35% de escuridão
-      // E deve ser significativamente mais escura que a segunda (pelo menos 1.5x)
-      const FILL_THRESHOLD = 60  // Mínimo de escuridão para considerar marcado
-      const RATIO_THRESHOLD = 1.4 // A marcada deve ser 1.4x mais escura que a próxima
+      const FILL_THRESHOLD = 50  // Mínimo reduzido levemente para ser mais tolerante
+      const RATIO_THRESHOLD = 1.3 
 
       if (darkest[1] >= FILL_THRESHOLD) {
         if (secondDarkest[1] < FILL_THRESHOLD || darkest[1] / secondDarkest[1] >= RATIO_THRESHOLD) {
           selectedAlt = darkest[0]
           maxDarkness = darkest[1]
         }
-        // Se duas estão muito próximas, pode ser rasura → não marca nenhuma
       }
 
       results.push({
@@ -272,14 +298,17 @@ export class OMRProcessor {
     height: number,
     centerX: number, 
     centerY: number, 
-    bubbleRadiusPx: number
+    bubbleRadiusPx: number,
+    strict: boolean = false
   ): number {
-    // Procurar numa janela de 2x o raio da bolinha (cobre erros de alinhamento)
-    const searchRadius = Math.floor(bubbleRadiusPx * 2.5)
-    const x0 = Math.max(0, centerX - searchRadius)
-    const x1 = Math.min(width - 1, centerX + searchRadius)
-    const y0 = Math.max(0, centerY - searchRadius)
-    const y1 = Math.min(height - 1, centerY + searchRadius)
+    // Se strict, busca exatamente no raio da bolinha. 
+    // Se não, dá uma pequena margem (mas sem encostar na do lado!)
+    // gap é de 1.5mm. Raio é 2.0mm. Margem segura = 0.5mm = ~25% do raio.
+    const searchRadius = strict ? bubbleRadiusPx : Math.floor(bubbleRadiusPx * 1.2)
+    const x0 = Math.max(0, Math.floor(centerX - searchRadius))
+    const x1 = Math.min(width - 1, Math.floor(centerX + searchRadius))
+    const y0 = Math.max(0, Math.floor(centerY - searchRadius))
+    const y1 = Math.min(height - 1, Math.floor(centerY + searchRadius))
 
     const darknessValues: number[] = []
 
@@ -298,10 +327,6 @@ export class OMRProcessor {
     // Ordenar do mais escuro (maior valor) para o mais claro
     darknessValues.sort((a, b) => b - a)
 
-    // A área de uma bolinha é pi * r^2.
-    // Vamos pegar os N pixels mais escuros, onde N é metade da área esperada da bolinha.
-    // Se a bolinha estiver preenchida, esses N pixels serão quase totalmente pretos.
-    // Se estiver vazia, esses N pixels vão incluir a borda fina e muito papel branco.
     const expectedBubbleArea = Math.PI * Math.pow(bubbleRadiusPx, 2)
     const numPixelsToSample = Math.max(5, Math.floor(expectedBubbleArea * 0.6))
     
