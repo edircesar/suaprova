@@ -87,14 +87,70 @@ export default function NovoGabaritoPage() {
     setRespostas({}) // Reset answers when a new file is uploaded
   }
 
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Limitar a largura máxima a 1200px (mais que suficiente para OMR)
+          const MAX_WIDTH = 1200;
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(file); // Fallback para o arquivo original se o canvas falhar
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file);
+              }
+            },
+            'image/jpeg',
+            0.85 // Qualidade 85% (ótimo balanço entre tamanho e nitidez)
+          );
+        };
+        img.onerror = () => resolve(file);
+      };
+      reader.onerror = () => resolve(file);
+    });
+  };
+
   const executeExtraction = async () => {
     if (!file) return
     setIsExtracting(true)
     setError(null)
     
     try {
+      // 1. Comprimir a imagem no lado do cliente ANTES de enviar pro servidor
+      // Isso reduz de ~5MB para ~150KB, resolvendo o problema de erro 503/Timeout
+      const compressedFile = await compressImage(file)
+
       const formData = new FormData()
-      formData.append('image', file)
+      formData.append('image', compressedFile)
       formData.append('questoesQtd', questoesQtd.toString())
       
       const result = await extractGabaritoFromImage(formData)
