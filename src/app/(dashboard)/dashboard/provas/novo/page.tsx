@@ -300,24 +300,32 @@ export default function NovoGabaritoPage() {
                     <p className="text-sm text-slate-500 mb-6 break-all line-clamp-2">{file.name}</p>
                     
                     {!extractionDone ? (
-                      <button
-                        type="button"
-                        onClick={executeExtraction}
-                        disabled={isExtracting}
-                        className="inline-flex w-full sm:w-auto items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50 bg-indigo-600 text-white hover:bg-indigo-700 h-12 px-6 shadow-md"
-                      >
-                        {isExtracting ? (
-                          <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Analisando imagem...
-                          </>
-                        ) : (
-                          <>
-                            <Wand2 className="mr-2 h-5 w-5" />
-                            Extrair Respostas Automaticamente
-                          </>
+                      <div className="w-full">
+                        {error && (
+                          <div className="mb-4 w-full bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg flex items-center gap-3 dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-400">
+                            <X className="h-5 w-5 shrink-0" />
+                            <p className="text-sm font-medium">{error}</p>
+                          </div>
                         )}
-                      </button>
+                        <button
+                          type="button"
+                          onClick={executeExtraction}
+                          disabled={isExtracting}
+                          className="inline-flex w-full sm:w-auto items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50 bg-indigo-600 text-white hover:bg-indigo-700 h-12 px-6 shadow-md"
+                        >
+                          {isExtracting ? (
+                            <>
+                              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                              Analisando imagem...
+                            </>
+                          ) : (
+                            <>
+                              <Wand2 className="mr-2 h-5 w-5" />
+                              Extrair Respostas Automaticamente
+                            </>
+                          )}
+                        </button>
+                      </div>
                     ) : (
                       <div className="bg-emerald-50 text-emerald-700 border border-emerald-200 p-4 rounded-lg flex gap-3 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800">
                         <Wand2 className="h-5 w-5 shrink-0 mt-0.5" />
